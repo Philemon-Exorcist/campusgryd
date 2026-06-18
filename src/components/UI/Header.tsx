@@ -30,18 +30,14 @@ export const Header: React.FC<HeaderProps> = ({
           <Menu size={20} />
         </button>
         
-        <button
-          onClick={onNavigateHome}
-          className="flex items-center gap-2 sm:gap-3 text-left hover:opacity-90 active:scale-95 transition-all group cursor-pointer"
-          title="Back to Landing Page"
-        >
-          <div className="w-8.5 h-8.5 sm:w-10 sm:h-10 bg-gradient-to-br from-rsu-navy to-[#0a2e5c] rounded-xl flex items-center justify-center shadow-md border border-white/20 group-hover:from-emerald-600 group-hover:to-emerald-500 duration-200 shrink-0">
-            <GraduationCap className="text-white drop-shadow-sm group-hover:scale-105 transition-transform" size={20} />
+        <div className="flex items-center gap-2 sm:gap-3 text-left">
+          <div className="w-8.5 h-8.5 sm:w-10 sm:h-10 bg-gradient-to-br from-rsu-navy to-[#0a2e5c] rounded-xl flex items-center justify-center shadow-md border border-white/20 shrink-0">
+            <GraduationCap className="text-white drop-shadow-sm font-bold" size={20} />
           </div>
           <div className="flex flex-col justify-center">
             <h1 
               style={{ color: isDarkMode ? '#FFFFFF' : '#0F172A' }}
-              className="text-xs md:text-sm font-display font-black uppercase tracking-tight leading-none group-hover:text-emerald-500 transition-colors"
+              className="text-xs md:text-sm font-display font-black uppercase tracking-tight leading-none"
             >
               <span className="hidden sm:inline">Rivers State University</span>
               <span className="inline sm:hidden">RSU</span>
@@ -50,12 +46,9 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="text-[8px] sm:text-[9px] font-bold text-white bg-rsu-orange px-1.2 py-0.5 rounded uppercase tracking-wider">
                 CampusGryd
               </span>
-              <span className="hidden sm:inline text-[9px] font-bold text-slate-400 group-hover:text-emerald-500 transition-colors font-mono uppercase tracking-tight">
-                • Back to Home
-              </span>
             </div>
           </div>
-        </button>
+        </div>
       </div>
 
       <div className="flex items-center gap-1.5 sm:gap-3 md:gap-4">

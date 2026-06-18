@@ -22,24 +22,58 @@ interface CampusMapProps {
 function MapController({ center, zoom, onMapMove }: { center: [number, number], zoom: number, onMapMove: (center: [number, number], zoom: number) => void }) {
   const map = useMap();
   const lastTargetRef = React.useRef<{ center: [number, number]; zoom: number } | null>(null);
-  const isMovingProgrammaticallyRef = React.useRef<boolean>(false);
+  const isUserInteractingRef = React.useRef<boolean>(false);
   
+  // Track physical user touches/clicks/drags to distinguish user map pans from programmatic zoom/setViews
+  React.useEffect(() => {
+    const onUserInteractionStart = () => {
+      isUserInteractingRef.current = true;
+    };
+    const onUserInteractionEnd = () => {
+      setTimeout(() => {
+        isUserInteractingRef.current = false;
+      }, 200);
+    };
+
+    map.on('dragstart', onUserInteractionStart);
+    map.on('dragend', onUserInteractionEnd);
+
+    const container = map.getContainer();
+    container.addEventListener('mousedown', onUserInteractionStart, { capture: true });
+    container.addEventListener('touchstart', onUserInteractionStart, { capture: true, passive: true });
+    container.addEventListener('wheel', onUserInteractionStart, { capture: true, passive: true });
+
+    window.addEventListener('mouseup', onUserInteractionEnd, { capture: true });
+    window.addEventListener('touchend', onUserInteractionEnd, { capture: true });
+
+    return () => {
+      map.off('dragstart', onUserInteractionStart);
+      map.off('dragend', onUserInteractionEnd);
+
+      container.removeEventListener('mousedown', onUserInteractionStart, { capture: true });
+      container.removeEventListener('touchstart', onUserInteractionStart, { capture: true });
+      container.removeEventListener('wheel', onUserInteractionStart, { capture: true });
+
+      window.removeEventListener('mouseup', onUserInteractionEnd, { capture: true });
+      window.removeEventListener('touchend', onUserInteractionEnd, { capture: true });
+    };
+  }, [map]);
+
   // Update parents when map is moved manually
   React.useEffect(() => {
     const onMove = () => {
-      const newCenter = map.getCenter();
-      const newZoom = map.getZoom();
-      
-      // If we programmatically set this center, skip notifying parent to prevent ping-pong loop
-      if (isMovingProgrammaticallyRef.current) {
-        isMovingProgrammaticallyRef.current = false;
+      // ONLY notify parent if this movement is active physical user interaction!
+      if (!isUserInteractingRef.current) {
         return;
       }
+
+      const newCenter = map.getCenter();
+      const newZoom = map.getZoom();
 
       if (lastTargetRef.current) {
         const dTarget = L.latLng([newCenter.lat, newCenter.lng]).distanceTo(lastTargetRef.current.center);
         const zTarget = Math.abs(newZoom - lastTargetRef.current.zoom);
-        if (dTarget < 10 && zTarget < 0.5) {
+        if (dTarget < 1 && zTarget < 0.1) {
           return;
         }
       }
@@ -76,7 +110,6 @@ function MapController({ center, zoom, onMapMove }: { center: [number, number], 
 
     // Otherwise, perform the programmatic movement
     lastTargetRef.current = { center, zoom };
-    isMovingProgrammaticallyRef.current = true;
     map.setView(center, zoom, { animate: true, duration: 1 });
   }, [center[0], center[1], zoom, map]);
   

@@ -231,7 +231,11 @@ export const TimetablePanel: React.FC<TimetablePanelProps> = ({ onClose, onNavig
     if (!currentUser) {
       setIsSigningIn(true);
       try {
-        await signInWithPopup(auth, googleProvider);
+        const result = await signInWithPopup(auth, googleProvider);
+        const credential = GoogleAuthProvider.credentialFromResult(result);
+        if (credential?.accessToken) {
+          setCachedAccessToken(credential.accessToken);
+        }
       } catch (error: any) {
         if (error.code === 'auth/popup-blocked') {
           showToast("error", "Sign-in popup blocked. Please allow popups for this site.");
@@ -621,7 +625,11 @@ export const TimetablePanel: React.FC<TimetablePanelProps> = ({ onClose, onNavig
                 onClick={async () => {
                   setIsSigningIn(true);
                   try {
-                    await signInWithPopup(auth, googleProvider);
+                    const result = await signInWithPopup(auth, googleProvider);
+                    const credential = GoogleAuthProvider.credentialFromResult(result);
+                    if (credential?.accessToken) {
+                      setCachedAccessToken(credential.accessToken);
+                    }
                   } catch (error: any) {
                     showToast("error", "Sign-in error: " + error.message);
                   } finally {
