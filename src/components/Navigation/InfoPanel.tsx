@@ -53,7 +53,7 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
     <AnimatePresence>
       <motion.div
         initial={{ y: '100%' }}
-        animate={{ y: isPanelExpanded ? 0 : '50%' }}
+        animate={{ y: 0 }}
         exit={{ y: '100%' }}
         drag="y"
         dragConstraints={{ top: 0, bottom: 0 }}
@@ -176,7 +176,7 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
               </button>
               <button 
                 onClick={() => setIsPanelExpanded(false)}
-                className="p-1 bgColor-rsu-bg rounded-lg text-rsu-muted hover:bg-rsu-border transition-colors"
+                className="p-1 bg-rsu-bg rounded-lg text-rsu-muted hover:bg-rsu-border transition-colors"
               >
                 <X size={16} />
               </button>

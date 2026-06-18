@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Bookmark, Trash2, History, GraduationCap, Calendar, BookOpen } from 'lucide-react';
+import { X, Bookmark, Trash2, History, GraduationCap, Calendar, BookOpen, Home } from 'lucide-react';
 import { Location } from '../../types';
 
 interface MenuDrawerProps {
@@ -19,6 +19,7 @@ interface MenuDrawerProps {
   onSignOut: () => void;
   onOpenTerms?: () => void;
   onOpenPrivacy?: () => void;
+  onNavigateHome?: () => void;
 }
 
 export const MenuDrawer: React.FC<MenuDrawerProps> = ({
@@ -36,7 +37,8 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
   onSignInRedirect,
   onSignOut,
   onOpenTerms,
-  onOpenPrivacy
+  onOpenPrivacy,
+  onNavigateHome
 }) => {
   return (
     <AnimatePresence>
@@ -64,12 +66,29 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
               <button 
                 onClick={() => setIsMenuOpen(false)}
                 className="p-2 hover:bg-white/10 rounded-full transition-colors"
-              >
+               >
                 <X size={20} />
               </button>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
+              {/* Go to Homepage Link in Sidebar */}
+              <button
+                onClick={() => {
+                  onNavigateHome?.();
+                  setIsMenuOpen(false);
+                }}
+                className="w-full flex items-center p-3 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/15 rounded-2xl transition-all active:scale-95 group font-semibold cursor-pointer"
+              >
+                <div className="p-2 bg-emerald-500/10 rounded-xl mr-3 group-hover:scale-105 transition-transform duration-250 flex items-center justify-center shrink-0">
+                  <Home size={18} />
+                </div>
+                <div className="text-left">
+                  <div className="font-extrabold text-xs uppercase tracking-wider">Back to Home Screen</div>
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold leading-normal mt-0.5">Return to the landing dashboard</div>
+                </div>
+              </button>
+
               {/* User Section */}
               <div className="p-4 bg-rsu-bg rounded-2xl border border-rsu-border/20 shadow-inner">
                 {user ? (

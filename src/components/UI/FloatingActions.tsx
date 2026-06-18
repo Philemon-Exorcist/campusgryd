@@ -13,6 +13,10 @@ interface FloatingActionsProps {
   isSignedIn: boolean;
   onAddLocationClick: () => void;
   isLocating: boolean;
+  hasActiveSelection?: boolean;
+  isPanelExpanded?: boolean;
+  isTimetableOpen?: boolean;
+  isEventsPanelOpen?: boolean;
 }
 
 export const FloatingActions: React.FC<FloatingActionsProps> = ({
@@ -25,10 +29,27 @@ export const FloatingActions: React.FC<FloatingActionsProps> = ({
   toggleTimetable,
   isSignedIn,
   onAddLocationClick,
-  isLocating
+  isLocating,
+  hasActiveSelection = false,
+  isPanelExpanded = false,
+  isTimetableOpen = false,
+  isEventsPanelOpen = false
 }) => {
   return (
-    <div className="absolute right-4 bottom-24 flex flex-col gap-3 z-30">
+    <div 
+      className={cn(
+        "absolute flex flex-col gap-3 z-30 transition-all duration-350 right-4",
+        // On mobile, push up if details card is open so it rests above the summary bar.
+        // On desktop, keep at bottom-6.
+        hasActiveSelection 
+          ? "bottom-[200px] md:bottom-6" 
+          : "bottom-24 md:bottom-6",
+        // Shifting Left on desktop if Timetable or Events sidebar is wide-open to avoid covering them!
+        (isTimetableOpen || isEventsPanelOpen) ? "md:right-[412px]" : "md:right-4",
+        // Fade out on mobile if the details card is fully expanded to prevent covering details
+        isPanelExpanded ? "opacity-0 pointer-events-none scale-90 md:opacity-100 md:pointer-events-auto md:scale-100" : "opacity-100 scale-100"
+      )}
+    >
       <button
         onClick={toggleTimetable}
         className="p-3 bg-rsu-orange text-white border-2 border-white rounded-full shadow-lg hover:bg-rsu-navy transition-all flex items-center justify-center scale-110"

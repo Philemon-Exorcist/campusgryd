@@ -51,41 +51,45 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
   getCategoryIcon,
   onToggleChat
 }) => {
+  const showStartPoint = !!selectedLocation || !!startLocation || isNavigating || (isSearchFocused && searchMode === 'start');
+
   return (
-    <div className="absolute top-24 left-0 right-0 px-4 z-10 flex flex-col items-center">
+    <div className="absolute top-[68px] sm:top-24 left-0 right-0 px-3 sm:px-4 z-10 flex flex-col items-center">
       <div className="w-full max-w-2xl flex flex-col gap-1.5">
         <div className="flex-1 flex flex-col gap-1.5">
           {/* Start Point Search */}
-          <div className={cn(
-            "bg-rsu-card rounded-xl shadow-md border transition-all duration-300",
-            searchMode === 'start' ? "border-rsu-orange ring-2 ring-rsu-orange/20" : "border-rsu-border"
-          )}>
-            <div className="flex items-center px-4 py-2.5">
-              <div className="mr-3 flex flex-col items-center">
-                <div className="w-2.5 h-2.5 rounded-full border-2 border-rsu-orange bg-white" />
+          {showStartPoint && (
+            <div className={cn(
+              "bg-rsu-card rounded-xl shadow-md border transition-all duration-300",
+              searchMode === 'start' ? "border-rsu-orange ring-2 ring-rsu-orange/20" : "border-rsu-border"
+            )}>
+              <div className="flex items-center px-4 py-2.5">
+                <div className="mr-3 flex flex-col items-center">
+                  <div className="w-2.5 h-2.5 rounded-full border-2 border-rsu-orange bg-white" />
+                </div>
+                <input 
+                  type="text"
+                  placeholder="From: Your Location"
+                  className="flex-1 outline-none bg-transparent text-[11px] font-bold text-rsu-text placeholder:text-rsu-muted uppercase tracking-tighter"
+                  value={searchMode === 'start' ? searchQuery : (startLocation?.officialName || (userLocation ? "My GPS Location" : ""))}
+                  onFocus={() => {
+                    setIsSearchFocused(true);
+                    setSearchMode('start');
+                    setSearchQuery('');
+                  }}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setSearchMode('start');
+                  }}
+                />
+                {startLocation && (
+                  <button onClick={() => handleLocationSelect(null as any)}>
+                    <X size={14} className="text-rsu-muted" />
+                  </button>
+                )}
               </div>
-              <input 
-                type="text"
-                placeholder="From: Your Location"
-                className="flex-1 outline-none bg-transparent text-[11px] font-bold text-rsu-text placeholder:text-rsu-muted uppercase tracking-tighter"
-                value={searchMode === 'start' ? searchQuery : (startLocation?.officialName || (userLocation ? "My GPS Location" : ""))}
-                onFocus={() => {
-                  setIsSearchFocused(true);
-                  setSearchMode('start');
-                  setSearchQuery('');
-                }}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setSearchMode('start');
-                }}
-              />
-              {startLocation && (
-                <button onClick={() => handleLocationSelect(null as any)}>
-                  <X size={14} className="text-rsu-muted" />
-                </button>
-              )}
             </div>
-          </div>
+          )}
 
           {/* Destination Search */}
           <div className={cn(
@@ -198,7 +202,7 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
 
       {/* Category Filters */}
       {!isNavigating && (
-        <div className="hidden w-full max-w-md mt-3 flex gap-2 overflow-x-auto pb-2 no-scrollbar px-2">
+        <div className="w-full max-w-md mt-2.5 flex gap-1.5 overflow-x-auto pb-1.5 no-scrollbar px-2.5 sm:px-4">
           {(['all', 'faculty', 'college', 'department', 'admin', 'library', 'gate', 'facility'] as const).map(cat => (
             <button
               key={cat}

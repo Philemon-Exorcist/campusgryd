@@ -1,15 +1,20 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Compass, RotateCcw } from 'lucide-react';
+import { cn } from '../../lib/utils';
 
 interface CompassControlProps {
   rotation: number;
   onRotationChange: (angle: number) => void;
+  hasActiveSelection?: boolean;
+  isPanelExpanded?: boolean;
 }
 
 export const CompassControl: React.FC<CompassControlProps> = ({
   rotation,
-  onRotationChange
+  onRotationChange,
+  hasActiveSelection = false,
+  isPanelExpanded = false
 }) => {
   const dialRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -99,7 +104,17 @@ export const CompassControl: React.FC<CompassControlProps> = ({
   const roundedRot = Math.round(rotation);
 
   return (
-    <div className="absolute left-4 bottom-24 flex flex-col items-center gap-2 z-30 select-none">
+    <div 
+      className={cn(
+        "absolute flex flex-col items-center gap-2 z-30 select-none transition-all duration-350",
+        // Position changes based on whether map details are showing
+        hasActiveSelection 
+          ? "left-4 bottom-[200px] md:left-[472px] md:bottom-6" 
+          : "left-4 bottom-24 md:bottom-6",
+        // Hide on mobile if details panel is fully expanded to prevent clutter
+        isPanelExpanded ? "opacity-0 pointer-events-none scale-90 md:opacity-100 md:pointer-events-auto md:scale-100" : "opacity-100 scale-100"
+      )}
+    >
       {/* Visual orientation label badge */}
       <AnimatePresence>
         {roundedRot !== 0 && (

@@ -199,6 +199,7 @@ export default function App() {
       setCustomLocations(list);
     }, (error) => {
       console.error("Error fetching user locations: ", error);
+      handleFirestoreError(error, OperationType.GET, 'user_locations');
     });
 
     return () => unsubscribe();
@@ -283,6 +284,7 @@ export default function App() {
       }
     }, (error) => {
       console.error("onSnapshot error for user_syncs:", error);
+      handleFirestoreError(error, OperationType.GET, 'user_syncs');
     });
 
     return () => unsubscribe();
@@ -353,11 +355,11 @@ export default function App() {
   }, [notification]);
 
   useEffect(() => {
-    if (!auth.currentUser) return;
+    if (!currentUser) return;
 
     const q = query(
       collection(db, 'notifications'),
-      where('userId', '==', auth.currentUser.uid),
+      where('userId', '==', currentUser.uid),
       orderBy('createdAt', 'desc'),
       limit(1)
     );
@@ -373,10 +375,13 @@ export default function App() {
           }
         }
       });
+    }, (error) => {
+      console.error("onSnapshot error for notifications:", error);
+      handleFirestoreError(error, OperationType.GET, `notifications?userId=${currentUser.uid}`);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [currentUser]);
 
   const findClosestLocation = (lat: number, lng: number): Location | null => {
     let closest: Location | null = null;
@@ -1316,6 +1321,8 @@ export default function App() {
       <CompassControl 
         rotation={mapRotation}
         onRotationChange={setMapRotation}
+        hasActiveSelection={!!selectedLocation}
+        isPanelExpanded={isPanelExpanded}
       />
 
       <Header 
@@ -1371,6 +1378,10 @@ export default function App() {
         isSignedIn={!!currentUser}
         onAddLocationClick={handleRequestAddLocation}
         isLocating={isLocating}
+        hasActiveSelection={!!selectedLocation}
+        isPanelExpanded={isPanelExpanded}
+        isTimetableOpen={isTimetableOpen}
+        isEventsPanelOpen={isEventsPanelOpen}
       />
 
       <AnimatePresence>
@@ -1430,6 +1441,7 @@ export default function App() {
         onSignOut={handleSignOut}
         onOpenTerms={() => { window.location.href = '/terms.html'; }}
         onOpenPrivacy={() => { window.location.href = '/privacy.html'; }}
+        onNavigateHome={() => navigate('/')}
       />
 
       <ChatBot 

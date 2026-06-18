@@ -134,14 +134,14 @@ export const ChatBot: React.FC<ChatBotProps> = ({
   };
 
   return (
-    <div className="fixed bottom-24 right-4 z-[1000]">
+    <div className="fixed bottom-24 right-4 left-4 sm:left-auto sm:right-4 z-[1000] flex justify-end pointer-events-none">
       <AnimatePresence>
         {isOpen ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="w-[350px] sm:w-[400px] h-[500px] bg-slate-50 dark:bg-rsu-navy-light rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 dark:border-gray-700"
+            className="w-full sm:w-[400px] h-[500px] max-h-[calc(100vh-140px)] bg-slate-50 dark:bg-rsu-navy-light rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 dark:border-gray-700 pointer-events-auto"
           >
             {/* Header */}
             <div className="p-4 bg-rsu-navy text-white flex items-center justify-between shrink-0">

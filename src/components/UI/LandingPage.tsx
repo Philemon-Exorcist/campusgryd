@@ -227,43 +227,46 @@ export function LandingPage({ isDarkMode, setIsDarkMode, onNavigateToMap }: Land
 
   return (
     <div className={cn(
-      "min-h-screen w-full flex flex-col font-sans transition-colors duration-550 overflow-x-hidden selection:bg-blue-500/30",
-      isDarkMode ? "bg-slate-950 text-slate-150" : "bg-slate-50 text-slate-850"
+      "min-h-screen w-full flex flex-col font-sans transition-colors duration-500 overflow-x-hidden selection:bg-blue-500/35 selection:text-white",
+      isDarkMode ? "bg-slate-950 text-slate-100" : "bg-[#F8FAFC] text-slate-900"
     )}>
-      {/* Dynamic Ambient Background Elements */}
-      <div className="absolute top-0 left-0 w-full h-[600px] overflow-hidden pointer-events-none z-0">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-500/10 rounded-full blur-[100px] dark:bg-blue-500/5" />
-        <div className="absolute top-20 right-[-20%] w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[130px] dark:bg-blue-500/5 animate-pulse" style={{ animationDuration: '6s' }} />
-        <div className="absolute top-[400px] left-1/3 w-[300px] h-[300px] bg-amber-500/5 rounded-full blur-[90px]" />
+      {/* Cinematic Dynamic Ambient Background Blobs */}
+      <div className="absolute top-0 left-0 w-full h-[700px] overflow-hidden pointer-events-none z-0">
+        <div className="absolute -top-48 -left-48 w-[450px] h-[450px] bg-blue-600/10 dark:bg-blue-500/5 rounded-full blur-[130px] animate-pulse" style={{ animationDuration: '8s' }} />
+        <div className="absolute top-12 right-[-10%] w-[550px] h-[550px] bg-sky-400/10 dark:bg-sky-500/5 rounded-full blur-[140px] animate-pulse" style={{ animationDuration: '12s' }} />
+        <div className="absolute top-[350px] left-1/4 w-[350px] h-[350px] bg-[#0284c7]/5 dark:bg-emerald-500/5 rounded-full blur-[110px]" />
       </div>
 
       {/* Navigation Header */}
       <nav className={cn(
-        "sticky top-0 z-50 backdrop-blur-md border-b transition-colors duration-300 px-4 md:px-8 py-3.5 flex items-center justify-between",
-        isDarkMode ? "bg-slate-950/80 border-slate-900" : "bg-white/80 border-slate-200/50"
+        "sticky top-0 z-50 backdrop-blur-lg border-b transition-all duration-300 px-3 sm:px-4 md:px-8 py-3 sm:py-4 flex items-center justify-between",
+        isDarkMode 
+          ? "bg-slate-950/80 border-slate-900/80 shadow-md shadow-slate-950/20" 
+          : "bg-white/80 border-slate-200/60 shadow-sm shadow-slate-100/30"
       )}>
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => onNavigateToMap()}>
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-blue-500 to-sky-400 flex items-center justify-center shadow-lg shadow-blue-500/25 relative overflow-hidden group">
-            <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-            <Navigation className={cn(isDarkMode ? "text-white" : "text-blue-100", "transform rotate-45 select-none transition-transform group-hover:scale-110")} size={20} />
+        <div className="flex items-center gap-2 sm:gap-3.5 cursor-pointer group" onClick={() => onNavigateToMap()}>
+          <div className="w-8.5 h-8.5 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-blue-500 to-sky-400 flex items-center justify-center shadow-lg shadow-blue-500/20 relative overflow-hidden transition-all duration-300 group-hover:shadow-blue-500/30 group-hover:scale-105 shrink-0">
+            <span className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <Navigation className="text-white transform rotate-45 select-none transition-transform duration-300 group-hover:rotate-90" size={16} />
           </div>
           <div>
-            <h1 className="text-xl font-display font-black tracking-tight leading-none uppercase b">
-              Campus<span className="bg-gradient-to-r from-blue-500 to-sky-500 bg-clip-text text-transparent">Gryd</span>
+            <h1 className="text-base sm:text-lg md:text-xl font-display font-extrabold tracking-tight leading-none uppercase select-none">
+              Campus<span className="bg-gradient-to-r from-blue-600 to-sky-500 bg-clip-text text-transparent dark:from-blue-400 dark:to-sky-400">Gryd</span>
             </h1>
-            <p className="text-[9px] font-mono font-bold text-blue-500 dark:text-sky-400 uppercase tracking-widest leading-none mt-1">
-              RIVERS STATE UNIVERSITY NAVIGATOR
+            <p className="text-[7px] sm:text-[8px] font-mono font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.10em] sm:tracking-[0.2em] leading-none mt-1 sm:mt-1.5 transition-colors group-hover:text-blue-500">
+              <span className="hidden sm:inline">RIVERS STATE UNIVERSITY NAVIGATOR</span>
+              <span className="inline sm:hidden">RIVERS STATE UNIVERSITY</span>
             </p>
           </div>
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3">
           <button 
             onClick={() => onNavigateToMap()}
-            className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-700 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-900 transition-all cursor-pointer"
+            className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-slate-900/60 transition-all cursor-pointer font-sans"
           >
-            <Map size={15} />
+            <Map size={14} className="text-blue-500 dark:text-blue-400" />
             Explore Map
           </button>
 
@@ -271,56 +274,65 @@ export function LandingPage({ isDarkMode, setIsDarkMode, onNavigateToMap }: Land
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
             className={cn(
-              "p-2.5 rounded-xl border transition-all active:scale-90 cursor-pointer shadow-sm relative group overflow-hidden",
+              "p-2 sm:p-2.5 rounded-xl border transition-all active:scale-95 cursor-pointer relative group overflow-hidden shadow-sm",
               isDarkMode 
-                ? "bg-slate-900 border-slate-800 text-blue-400 hover:bg-slate-850" 
-                : "bg-white border-slate-200 text-slate-800 hover:bg-slate-50"
+                ? "bg-slate-900 border-slate-800 text-amber-400 hover:bg-slate-850" 
+                : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
             )}
             aria-label="Toggle Theme"
           >
-            <span className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-blue-500 to-sky-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-center" />
-            {isDarkMode ? <Sun size={17} /> : <Moon size={17} />}
+            <span className="absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-blue-550 to-sky-450 scale-x-0 group-hover:scale-x-100 transition-transform origin-center duration-300" />
+            {isDarkMode ? <Sun size={14} /> : <Moon size={14} />}
           </button>
 
           {/* Primary Action CTA */}
           <button
             onClick={() => onNavigateToMap()}
-            className={cn("px-5 py-2.5 bg-slate-900 hover:bg-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-xl text-xs font-black uppercase tracking-widest transition-all hover:shadow-lg hover:shadow-blue-500/20 active:scale-95 cursor-pointer relative overflow-hidden", isDarkMode ? "text-white" : "text-blue-300")}
+            className={cn(
+              "px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-wider sm:tracking-widest transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 cursor-pointer relative overflow-hidden font-sans border shrink-0 flex items-center justify-center gap-1",
+              isDarkMode 
+                ? "bg-blue-600 hover:bg-blue-500 border-blue-600 hover:border-blue-500 text-white shadow-blue-500/10" 
+                : "bg-slate-900 hover:bg-slate-850 border-slate-900 text-white shadow-slate-900/10"
+            )}
           >
-            Launch Live Navigation
+            <span className="hidden sm:inline">Launch Live Navigation</span>
+            <span className="inline sm:hidden">Launch Nav</span>
           </button>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="relative px-4 md:px-8 pt-10 pb-20 max-w-7xl mx-auto w-full flex flex-col lg:flex-row items-center gap-12 z-10">
+      <section className="relative px-4 md:px-8 pt-12 pb-24 max-w-7xl mx-auto w-full flex flex-col lg:flex-row items-center gap-14 z-10 transition-all">
         
         {/* Left Side Content */}
-        <div className="flex-1 space-y-7 text-center lg:text-left">
+        <div className="flex-1 space-y-8 text-center lg:text-left">
           
           {/* Announcement Pill */}
           <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 shadow-sm"
+            className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-widest bg-blue-500/10 hover:bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20 dark:border-blue-500/10 shadow-sm transition-all"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping" />
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+            </span>
             <Sparkles size={11} className="text-blue-500 shrink-0" />
-            COORDINATES PROJECT VERIFIED V5.13
+            COORDINATES PROJECT VERIFIED v5.32
           </motion.div>
- 
+  
           {/* Dynamic Headings */}
           <div className="space-y-4">
             <motion.h2 
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-3xl sm:text-4.25xl lg:text-5.5xl font-display font-black tracking-tight uppercase leading-[1.05] b"
+              className="text-3.5xl sm:text-5xl lg:text-6xl font-display font-extrabold tracking-tight uppercase leading-[1.05] b text-slate-900 dark:text-slate-50"
             >
               The Smarter Way <br />
               To Navigate <br />
-              <span className="bg-gradient-to-r from-blue-500 via-blue-400 to-sky-500 bg-clip-text text-transparent">RSU Campus.</span>
+              <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-sky-400 bg-clip-text text-transparent dark:from-blue-400 dark:to-sky-400">RSU Campus.</span>
             </motion.h2>
 
             <motion.p 
@@ -328,7 +340,7 @@ export function LandingPage({ isDarkMode, setIsDarkMode, onNavigateToMap }: Land
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.15 }}
               className={cn(
-                "text-xs sm:text-sm md:text-base max-w-xl mx-auto lg:mx-0 leading-relaxed font-medium transition-colors",
+                "text-xs sm:text-sm md:text-[15px] max-w-xl mx-auto lg:mx-0 leading-relaxed font-medium transition-colors duration-300",
                 isDarkMode ? "text-slate-400" : "text-slate-600"
               )}
             >
@@ -341,15 +353,15 @@ export function LandingPage({ isDarkMode, setIsDarkMode, onNavigateToMap }: Land
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative max-w-lg mx-auto lg:mx-0"
+            className="relative max-w-lg mx-auto lg:mx-0 z-40"
           >
             <div className={cn(
-              "flex items-center p-2 border-2 rounded-2xl transition-all shadow-md group relative",
+              "flex items-center p-2.5 border rounded-2xl transition-all shadow-md group relative backdrop-blur-md",
               isDarkMode 
-                ? "bg-slate-900/40 border-slate-800/80 focus-within:border-blue-500/80 focus-within:bg-slate-900" 
-                : "bg-white border-slate-200/80 focus-within:border-slate-800 focus-within:shadow-lg"
+                ? "bg-slate-900/60 border-slate-800/80 focus-within:border-blue-500/80 focus-within:bg-slate-950 focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:shadow-blue-500/5" 
+                : "bg-white/95 border-slate-200/80 focus-within:border-slate-800 focus-within:shadow-xl focus-within:ring-4 focus-within:ring-slate-900/5 focus-within:bg-white"
             )}>
-              <Search className="text-slate-400 ml-3 shrink-0" size={19} />
+              <Search className="text-slate-400 ml-3.5 shrink-0" size={17} />
               <input 
                 type="text"
                 placeholder="Search New Senate, classrooms, libraries..."
@@ -359,17 +371,17 @@ export function LandingPage({ isDarkMode, setIsDarkMode, onNavigateToMap }: Land
                   setShowResults(true);
                 }}
                 onFocus={() => setShowResults(true)}
-                className="w-full bg-transparent px-3 py-2 text-sm text-slate-850 dark:text-slate-150 focus:outline-none placeholder-slate-400 font-semibold"
+                className="w-full bg-transparent px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none placeholder-slate-450 font-bold tracking-tight"
               />
-              <span className="hidden sm:inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50 text-[10px] font-mono text-slate-400 font-bold mr-1.5 uppercase select-none">
+              <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50 text-[9px] font-mono text-slate-450 dark:text-slate-400 font-bold mr-1.5 uppercase select-none tracking-tight shrink-0">
                 ⌘K Discover
               </span>
               {searchQuery && (
                 <button 
                   onClick={() => { setSearchQuery(''); setShowResults(false); }}
-                  className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg text-slate-400 transition-colors mr-1"
+                  className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg text-slate-450 hover:text-slate-700 dark:hover:text-slate-300 transition-colors mr-1"
                 >
-                  <X size={15} />
+                  <X size={14} />
                 </button>
               )}
             </div>
@@ -378,40 +390,48 @@ export function LandingPage({ isDarkMode, setIsDarkMode, onNavigateToMap }: Land
             <AnimatePresence>
               {showResults && searchQuery && (
                 <motion.div 
-                  initial={{ opacity: 0, y: 8 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 8 }}
+                  exit={{ opacity: 0, y: 10 }}
                   className={cn(
-                    "absolute top-full left-0 right-0 mt-2 p-3.5 border rounded-2xl shadow-2xl z-55 text-left max-h-72 overflow-y-auto backdrop-blur-md",
+                    "absolute top-full left-0 right-0 mt-2.5 p-4 border rounded-2xl shadow-2xl z-55 text-left max-h-76 overflow-y-auto backdrop-blur-xl transition-all",
                     isDarkMode 
-                      ? "bg-slate-950/95 border-slate-850" 
-                      : "bg-white/95 border-slate-200"
+                      ? "bg-slate-950/98 border-slate-850 shadow-slate-950/80" 
+                      : "bg-white/98 border-slate-200 shadow-slate-200/50"
                   )}
                 >
                   {filteredSearch.length > 0 ? (
                     <div className="space-y-1.5">
-                      <div className="flex items-center justify-between mb-2 px-2">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">REGISTRY SEARCH MATCHES</p>
-                        <span className="text-[9px] font-mono text-emerald-500 font-bold uppercase">Dynamic GPS Ready</span>
+                      <div className="flex items-center justify-between mb-2.5 px-1.5">
+                        <p className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest">REGISTRY SEARCH MATCHES</p>
+                        <span className="text-[8px] font-mono text-emerald-500 font-bold uppercase tracking-wider bg-emerald-500/10 px-2 py-0.5 rounded-md">Dynamic GPS Ready</span>
                       </div>
                       {filteredSearch.map(loc => {
                         const badgeObj = getTypeBadge(loc.type);
                         return (
                           <button
+                           id={`hero-search-res-${loc.id}`}
                             key={loc.id}
                             onClick={() => handleSearchResultClick(loc)}
-                            className="flex items-center justify-between w-full p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-900 text-left transition-all group"
+                            className={cn(
+                              "flex items-center justify-between w-full p-3 rounded-xl text-left transition-all group cursor-pointer border border-transparent",
+                              isDarkMode 
+                                ? "hover:bg-slate-900/80 hover:border-slate-800" 
+                                : "hover:bg-slate-50 hover:border-slate-200"
+                            )}
                           >
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-850/70 flex items-center justify-center text-slate-500 dark:text-slate-400 group-hover:bg-emerald-500/10 group-hover:text-emerald-500 duration-200">
-                                <MapPin size={16} />
+                              <div className="w-8.5 h-8.5 rounded-lg bg-slate-100 dark:bg-slate-900 flex items-center justify-center text-slate-455 group-hover:bg-blue-500/10 group-hover:text-blue-500 duration-200 shrink-0">
+                                <MapPin size={15} />
                               </div>
-                              <div>
-                                <p className="font-bold text-xs group-hover:text-emerald-500 transition-colors text-ellipsis overflow-hidden line-clamp-1 b">{loc.officialName}</p>
-                                <p className="text-[10px] text-slate-400 capitalize mt-0.5">{loc.landmark} • Coordinates: [{loc.coordinates.map(c => c.toFixed(4)).join(', ')}]</p>
+                              <div className="min-w-0">
+                                <p className="font-extrabold text-xs group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors text-ellipsis overflow-hidden line-clamp-1 leading-snug uppercase b">{loc.officialName}</p>
+                                <p className="text-[10px] text-slate-400 mt-1 truncate">
+                                  {loc.landmark} • <span className="font-mono text-[9px]">{loc.coordinates[0].toFixed(5)}, {loc.coordinates[1].toFixed(5)}</span>
+                                </p>
                               </div>
                             </div>
-                            <span className={cn("px-2 py-0.5 text-[9px] rounded-lg font-bold border shrink-0", badgeObj.style)}>
+                            <span className={cn("px-2.5 py-0.5 text-[8px] rounded-lg font-bold border shrink-0 uppercase tracking-wider ml-3", badgeObj.style)}>
                               {badgeObj.label}
                             </span>
                           </button>
@@ -419,14 +439,17 @@ export function LandingPage({ isDarkMode, setIsDarkMode, onNavigateToMap }: Land
                       })}
                     </div>
                   ) : (
-                    <div className="p-5 text-center space-y-2">
-                      <HelpCircle className="text-slate-550 mx-auto" size={24} />
-                      <p className="text-xs text-slate-400 font-semibold">No direct RSU coordinates found matching yours.</p>
+                    <div className="p-6 text-center space-y-3.5">
+                      <HelpCircle className="text-slate-400 mx-auto" size={26} />
+                      <div className="space-y-1">
+                        <p className="text-xs text-slate-800 dark:text-slate-250 font-bold">No matches found on custom RSU registry</p>
+                        <p className="text-[10px] text-slate-450">Double check spelling or request navigation index update.</p>
+                      </div>
                       <button 
                         onClick={() => onNavigateToMap()}
-                        className="text-[10px] font-black uppercase text-emerald-500 tracking-wider hover:underline"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-950/20 hover:bg-blue-150/50 text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 tracking-widest rounded-lg transition-transform active:scale-95 duration-200"
                       >
-                        Browse universal campus registry instead &rarr;
+                        Launch Interactive Map Console &rarr;
                       </button>
                     </div>
                   )}
@@ -445,9 +468,14 @@ export function LandingPage({ isDarkMode, setIsDarkMode, onNavigateToMap }: Land
             {/* Find Path Primary */}
             <button
               onClick={() => onNavigateToMap()}
-              className={cn("px-7 py-3.5 bg-slate-900 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2.5 shadow-xl shadow-blue-500/10 active:scale-95 transition-all cursor-pointer group", isDarkMode ? "text-white" : "text-blue-300")}
+              className={cn(
+                "px-7 py-4.5 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-3 shadow-xl transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5 active:translate-y-0 active:scale-95 cursor-pointer group border leading-none",
+                isDarkMode 
+                  ? "bg-blue-600 border-blue-600 hover:bg-blue-500 hover:border-blue-500 text-white shadow-blue-500/10 text-glow" 
+                  : "bg-slate-900 border-slate-900 hover:bg-slate-800 hover:border-slate-800 text-white shadow-slate-900/10"
+              )}
             >
-              <Navigation className={cn("transform rotate-45 shrink-0 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 duration-200", isDarkMode ? "text-white" : "text-blue-300")} size={15} />
+              <Navigation className="transform rotate-45 shrink-0 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" size={14} />
               Open Live Route Finder
             </button>
 
@@ -455,13 +483,13 @@ export function LandingPage({ isDarkMode, setIsDarkMode, onNavigateToMap }: Land
             <button
               onClick={() => onNavigateToMap(null, true)}
               className={cn(
-                "px-7 py-3.5 border-2 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2.5 active:scale-95 transition-all cursor-pointer",
+                "px-7 py-4.5 border-2 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-3 active:scale-95 transition-all duration-300 leading-none",
                 isDarkMode 
-                  ? "bg-slate-900/30 border-slate-800 hover:bg-slate-850 text-slate-100" 
-                  : "bg-white border-slate-200 hover:bg-slate-50 text-slate-900 hover:border-slate-350"
+                  ? "bg-slate-900/30 border-slate-800 hover:bg-slate-900 text-slate-100 hover:border-slate-700" 
+                  : "bg-white border-slate-200 hover:bg-slate-50 text-slate-900 hover:border-slate-300"
               )}
             >
-              <Calendar size={15} className="text-blue-500" />
+              <Calendar size={14} className="text-blue-500" />
               Academic Schedules
             </button>
           </motion.div>
@@ -471,21 +499,21 @@ export function LandingPage({ isDarkMode, setIsDarkMode, onNavigateToMap }: Land
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.35 }}
-            className="flex flex-wrap items-center justify-center lg:justify-start gap-2 pt-1 text-xs"
+            className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 pt-2 text-xs"
           >
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-widest mr-2 flex items-center gap-1">
+            <span className="text-[9px] font-mono font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mr-2 flex items-center gap-1.5 select-none">
               <TrendingUp size={11} className="text-blue-500" />
-              HOT PLACES:
+              POPULAR NODES:
             </span>
             {trendingLocations.map(loc => (
               <button
                 key={loc.id}
                 onClick={() => onNavigateToMap(loc)}
                 className={cn(
-                  "px-3 py-1.5 rounded-xl border text-[11px] font-bold tracking-tight transition-all hover:border-blue-500 hover:text-blue-500 cursor-pointer active:scale-95 duration-200",
+                  "px-3 py-1.5 rounded-xl border text-[10.5px] font-bold tracking-tight transition-all duration-200 hover:border-blue-500 hover:text-blue-500 dark:hover:text-blue-400 cursor-pointer active:scale-95",
                   isDarkMode 
-                    ? "bg-slate-900/30 border-slate-850 text-slate-400" 
-                    : "bg-white border-slate-200 text-slate-600"
+                    ? "bg-slate-900/40 border-slate-850 text-slate-400 hover:bg-slate-900" 
+                    : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
                 )}
               >
                 {loc.officialName.split(' - ')[0]}
@@ -765,22 +793,22 @@ export function LandingPage({ isDarkMode, setIsDarkMode, onNavigateToMap }: Land
 
       {/* RSU Campus Landmark Finder Registry Grid Selector section */}
       <section className={cn(
-        "py-16 px-4 md:px-8 border-t transition-colors",
-        isDarkMode ? "bg-slate-900/30 border-slate-900" : "bg-slate-100/50 border-slate-200"
+        "py-18 px-4 md:px-8 border-t transition-colors duration-300",
+        isDarkMode ? "bg-slate-900/35 border-slate-900/60" : "bg-slate-50/70 border-slate-200/50"
       )}>
-        <div className="max-w-7xl mx-auto space-y-10">
+        <div className="max-w-7xl mx-auto space-y-12">
           
           {/* Section Header */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="space-y-3 max-w-xl text-left">
-              <span className="text-[9px] font-mono font-black tracking-widest text-blue-500 dark:text-blue-400 uppercase bg-blue-500/10 dark:bg-blue-500/10 px-3 py-1.5 rounded-full border border-blue-500/10">
+              <span className="text-[9px] font-mono font-bold tracking-widest text-blue-600 dark:text-blue-400 uppercase bg-blue-500/10 dark:bg-blue-500/10 px-3.5 py-1.5 rounded-full border border-blue-500/15">
                 CAMPUS LANDMARKS DATABASE
               </span>
-              <h3 className="text-2xl md:text-3.5xl font-display font-black uppercase tracking-tight b">
+              <h3 className="text-2xl md:text-3xl lg:text-4xl font-display font-black uppercase tracking-tight text-slate-900 dark:text-slate-50">
                 Inspect coordinates directly.
               </h3>
               <p className={cn(
-                "text-xs md:text-sm font-medium leading-relaxed",
+                "text-xs md:text-sm font-semibold leading-relaxed transition-colors duration-300",
                 isDarkMode ? "text-slate-400" : "text-slate-500"
               )}>
                 Browse coordinates collected by the geodetic mapping project. Click any landmark to immediately calculate optimal walking routes.
@@ -788,15 +816,15 @@ export function LandingPage({ isDarkMode, setIsDarkMode, onNavigateToMap }: Land
             </div>
 
             {/* Category Filter Pills */}
-            <div className="flex flex-wrap items-center gap-1.5 shrink-0 self-start md:self-end">
+            <div className="flex flex-wrap items-center gap-2 shrink-0 self-start md:self-end">
               {(['all', 'faculty', 'admin', 'facility', 'gate'] as const).map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={cn(
-                    "px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer transition-all active:scale-95",
+                    "px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer transition-all active:scale-95 duration-200 border",
                     activeTab === tab
-                      ? cn("bg-slate-900 dark:bg-blue-600 font-black shadow-md shadow-blue-500/5", isDarkMode ? "text-white" : "text-blue-300")
+                      ? isDarkMode ? "bg-blue-600 border-blue-600 text-white font-black shadow-lg shadow-blue-500/10" : "bg-slate-900 border-slate-900 text-white font-black shadow-md"
                       : isDarkMode
                         ? "bg-slate-900/40 border border-slate-850 hover:bg-slate-850 hover:text-white text-slate-400"
                         : "bg-white border border-slate-200 hover:bg-slate-50 text-slate-600"
@@ -809,50 +837,59 @@ export function LandingPage({ isDarkMode, setIsDarkMode, onNavigateToMap }: Land
           </div>
 
           {/* Catalog Grid output */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {categoryFilteredLocations.map(loc => {
               const badge = getTypeBadge(loc.type);
+              const getLocIcon = (t: string) => {
+                if (t === 'faculty') return <BookOpen size={14} className="text-blue-500 dark:text-blue-400 shrink-0" />;
+                if (t === 'admin') return <ShieldCheck size={14} className="text-amber-500 dark:text-amber-400 shrink-0" />;
+                if (t === 'gate') return <Compass size={14} className="text-emerald-500 dark:text-emerald-400 shrink-0" />;
+                return <Layers size={14} className="text-indigo-500 dark:text-indigo-400 shrink-0" />;
+              };
               return (
                 <motion.div
                   layout
                   key={loc.id}
                   className={cn(
-                    "p-5 rounded-2xl border transition-all flex flex-col justify-between group h-full space-y-4 hover:-translate-y-1 hover:shadow-lg",
+                    "p-6 rounded-2xl border transition-all duration-300 flex flex-col justify-between group h-full space-y-5 hover:-translate-y-1 hover:shadow-xl",
                     isDarkMode 
-                      ? "bg-slate-950/60 border-slate-900/60 hover:bg-slate-950/80 hover:border-slate-800" 
-                      : "bg-white border-slate-200 hover:bg-slate-50/50 hover:border-slate-300"
+                      ? "bg-slate-950/65 border-slate-900/60 hover:bg-slate-950/90 hover:border-slate-800 shadow-slate-950/40" 
+                      : "bg-white border-slate-200/80 hover:bg-white hover:border-slate-300 shadow-slate-100/50"
                   )}
                 >
-                  <div className="space-y-3.5">
+                  <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className={cn("px-2.5 py-0.5 text-[9px] rounded-lg font-bold border", badge.style)}>
+                      <span className={cn("px-2.5 py-0.5 text-[8.5px] rounded-lg font-bold border uppercase tracking-wider font-mono", badge.style)}>
                         {badge.label}
                       </span>
-                      <span className="text-[10px] font-mono text-slate-400 dark:text-slate-600 font-bold">
-                        Idx: #{loc.id.substring(0, 5)}
-                      </span>
+                      <div className="flex items-center gap-1.5 opacity-80">
+                        {getLocIcon(loc.type)}
+                        <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500 font-bold">
+                          Idx: #{loc.id.substring(0, 5)}
+                        </span>
+                      </div>
                     </div>
                     <div>
-                      <h4 className="text-sm font-display font-black uppercase leading-snug group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors b">
+                      <h4 className="text-sm sm:text-base font-display font-extrabold uppercase leading-snug group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors duration-250 text-slate-850 dark:text-slate-100 b">
                         {loc.officialName}
                       </h4>
                       <p className={cn(
-                        "text-[11px] leading-relaxed mt-1.5 line-clamp-2",
-                        isDarkMode ? "text-slate-450" : "text-slate-500"
+                        "text-[11.5px] leading-relaxed mt-2.5 font-medium transition-colors duration-300 line-clamp-2",
+                        isDarkMode ? "text-slate-400" : "text-slate-500"
                       )}>
                         {loc.description || "Official RSU facility mapped natively to the walking navigation grid parameters."}
                       </p>
                     </div>
                   </div>
 
-                  <div className="border-t border-slate-200/60 dark:border-slate-850/60 pt-3.5 flex items-center justify-between text-[11px]">
-                    <div className="flex items-center gap-1.5 text-slate-400">
-                      <MapPin size={12} className="text-blue-500 shrink-0" />
-                      <span className="font-semibold text-ellipsis overflow-hidden line-clamp-1">{loc.landmark}</span>
+                  <div className="border-t border-slate-200/50 dark:border-slate-900 pt-4 flex items-center justify-between text-[11.5px] select-none">
+                    <div className="flex items-center gap-1.5 text-slate-400 min-w-0 pr-2">
+                      <MapPin size={13} className="text-blue-500 dark:text-blue-400 shrink-0" />
+                      <span className="font-bold text-[10.5px] text-ellipsis overflow-hidden truncate">{loc.landmark}</span>
                     </div>
                     <button
                       onClick={() => onNavigateToMap(loc)}
-                      className="text-[10px] font-black uppercase text-blue-500 flex items-center gap-1 group-hover:translate-x-0.5 transition-transform shrink-0"
+                      className="text-[10px] font-black uppercase tracking-wider text-blue-500 dark:text-blue-400 flex items-center gap-1 transition-transform group-hover:translate-x-1 duration-300 shrink-0 font-sans"
                     >
                       GO &rarr;
                     </button>
@@ -863,14 +900,14 @@ export function LandingPage({ isDarkMode, setIsDarkMode, onNavigateToMap }: Land
           </div>
 
           {/* Quick Registry Total Label */}
-          <div className="text-center pt-2">
-            <p className="text-xs font-mono text-slate-450">
-              Showing <strong className="text-emerald-500">{categoryFilteredLocations.length}</strong> of <strong className="text-slate-900 dark:text-slate-200">{locations.length}</strong> geocoded campus nodes. 
+          <div className="text-center pt-3 select-none">
+            <p className="text-xs font-mono font-medium text-slate-450">
+              Showing <strong className="text-emerald-500 font-bold">{categoryFilteredLocations.length}</strong> of <strong className="text-slate-900 dark:text-slate-200 font-bold">{locations.length}</strong> geocoded campus nodes. 
               <button 
                 onClick={() => onNavigateToMap()} 
-                className="ml-2 underline hover:text-emerald-400 transition-colors font-bold uppercase text-[9px] tracking-wider"
+                className="ml-2.5 hover:text-emerald-400 text-blue-500 dark:text-blue-400 font-bold uppercase text-[9px] tracking-wider transition-colors hover:underline cursor-pointer"
               >
-                Inspect All on Map Registry
+                Inspect All on Map Registry &rarr;
               </button>
             </p>
           </div>
