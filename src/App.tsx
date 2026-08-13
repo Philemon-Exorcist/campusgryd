@@ -62,7 +62,7 @@ interface FirestoreErrorInfo {
   };
 }
 
-function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null): never {
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null): void {
   const errInfo: FirestoreErrorInfo = {
     error: error instanceof Error ? error.message : String(error),
     authInfo: {
@@ -80,7 +80,6 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
     path
   };
   console.error('Firestore Error: ', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
 }
 
 type Category = 'all' | 'faculty' | 'college' | 'admin' | 'hostel' | 'food' | 'gate' | 'sports' | 'library' | 'facility' | 'landmark' | 'department';
@@ -569,7 +568,7 @@ export default function App() {
           return [latitude, longitude];
         });
       },
-      (error) => console.error("GPS Watch error:", error),
+      (error) => console.warn("GPS Watch status:", error?.message || error),
       { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
     );
 

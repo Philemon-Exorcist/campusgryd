@@ -138,12 +138,12 @@ const PRIVACY_SECTIONS: DocSection[] = [
     id: 'intro',
     title: 'Scope Policy Introduction',
     content: [
-      'This Privacy Policy describes how the Rivers State University (RSU) Campus Map & Timetable System (referred to as "the System," "the Application," "we," "us," or "our") handles user data. We are fully committed to protecting your privacy and providing a secure, transparent utility for navigating the Rivers State University campus and accessing lecture schedules.'
+      'This Privacy Policy describes how the Rivers State University (RSU) Campus Map & Timetable System (referred to as "the System," "the Application," "CampusGryd," "we," "us," or "our") handles user data. We are fully committed to protecting your privacy and providing a secure, transparent utility for navigating the Rivers State University campus and accessing lecture schedules.'
     ],
     infoBox: {
       type: 'info',
       title: 'Core Privacy Guarantee',
-      text: 'The RSU Campus Map & Timetable System is built on a "Privacy by Design" architecture. We do not collect, capture, process, upload, or store any personal data or personal identifier from our users. Your usage of the application is completely anonymous.'
+      text: 'The RSU Campus Map & Timetable System is built on a "Privacy by Design" architecture. We do not collect, capture, process, upload, or store any personal data or persistent identifiers from our users on external servers. Your usage of the application is completely secure and transparent.'
     }
   },
   {
@@ -151,24 +151,24 @@ const PRIVACY_SECTIONS: DocSection[] = [
     num: '1',
     title: 'Information We Do Not Collect',
     content: [
-      'Unlike services that track user profiles, this System explicitly operates without requesting or processing personal data. We do not collect:'
+      'Unlike services that track user profiles, this System explicitly operates without requesting or processing unnecessary personal data. We do not collect:'
     ],
     bullets: [
       {
         bold: 'Personal Identifiers:',
-        normal: 'We do not collect names, email addresses, phone numbers, student registration numbers, department information, or faculty details.'
+        normal: 'We do not collect personal names, phone numbers, student registration numbers, department information, or faculty details for tracking.'
       },
       {
-        bold: 'Account Credentials:',
-        normal: 'There is no registration or sign-in mechanism required to use the system. You do not create a profile, password, or account.'
+        bold: 'Account Passwords:',
+        normal: 'There is no password creation required. Google authentication is handled directly through secure Google OAuth 2.0 servers.'
       },
       {
         bold: 'Persistent Device Tracking:',
         normal: 'We do not harvest unique hardware identifiers such as IMEI numbers, MAC addresses, Android IDs, or Advertising IDs.'
       },
       {
-        bold: 'Server-Side User History:',
-        normal: 'Your search queries (e.g., search strings for localized landmarks or student aliases like "Back of Senate") and timetable lookups are processed strictly on your device or treated as transient, un-linked requests. They are never tied to an individual or stored in a persistent database.'
+        bold: 'Server-Side Search History:',
+        normal: 'Your search queries (e.g., search strings for localized landmarks or student aliases like "Back of Senate") and timetable lookups are processed strictly on your device. They are never tied to an individual or stored in an external persistent database.'
       }
     ]
   },
@@ -186,13 +186,53 @@ const PRIVACY_SECTIONS: DocSection[] = [
       },
       {
         bold: 'No Location Logging:',
-        normal: 'This location data is utilized strictly in real-time. We do not transmit, log, cache, or store your historical coordinates or movement paths on any external server. Once you close the application, all real-time positioning information is immediately flushed from the active memory.'
+        normal: 'This location data is utilized strictly in real-time. We do not transmit, log, cache, or store your historical coordinates or movement paths on any external server. Once you close the application, all real-time positioning information is immediately flushed from active memory.'
       }
     ]
   },
   {
-    id: 'third-party',
+    id: 'google-user-data',
     num: '3',
+    title: 'Google User Data Handling & OAuth Integration',
+    content: [
+      'When you use the automated lecture timetable synchronization feature, CampusGryd interacts with Google APIs (Google OAuth 2.0 and Google Calendar API) upon your explicit request.'
+    ],
+    bullets: [
+      {
+        bold: 'Sharing, Transfer, and Disclosure of Google User Data:',
+        normal: 'CampusGryd does NOT share, transfer, disclose, or sell Google user data—including email addresses, profile details, or Google Calendar event data—to any third parties, external databases, marketing entities, advertising partners, AI model trainers, or data brokers. All Google user data accessed via Google APIs is processed exclusively on your client device to create and synchronize RSU lecture timetable events directly into your personal Google Calendar.'
+      },
+      {
+        bold: 'Google User Data Retention:',
+        normal: 'We do not store or retain Google user data on any persistent server or external database. OAuth authentication tokens and calendar sync metadata are stored exclusively in your browser\'s local storage on your device for as long as you maintain an active session. Upon signing out or un-syncing your calendar, authentication tokens are immediately purged and discarded from local storage.'
+      },
+      {
+        bold: 'Data Deletion & Access Revocation Procedures:',
+        normal: 'Users have full control over their data and can delete or remove all Google user data and access permissions at any time through the following procedures:\n' +
+          '1. In-App Disconnect: Click "Unsync Calendar" or "Sign Out" in the application\'s Timetable Sync settings to instantly delete all cached sync tokens and session data from your device.\n' +
+          '2. Clear Local Storage: Clear your web browser\'s cache and local storage to erase any stored session data.\n' +
+          '3. Google Account Revocation: Revoke CampusGryd\'s access to your Google account at any time via your Google Account Security Settings at https://myaccount.google.com/permissions.\n' +
+          '4. Deletion Support Request: Contact our support team directly via email at progressphilemon@gmail.com for assistance or confirmation of data removal.'
+      }
+    ]
+  },
+  {
+    id: 'limited-use',
+    num: '4',
+    title: 'Google API Limited Use Compliance Statement',
+    content: [
+      'CampusGryd strictly adheres to Google\'s API Services User Data Policy regarding data accessed through Google APIs.',
+      'Limited Use Disclosure: CampusGryd\'s use and transfer to any other app of information received from Google APIs will adhere to the Google API Services User Data Policy (https://developers.google.com/terms/api-services-user-data-policy), including the Limited Use requirements.'
+    ],
+    infoBox: {
+      type: 'info',
+      title: 'Google API Limited Use Compliance',
+      text: 'CampusGryd\'s use and transfer to any other app of information received from Google APIs will adhere to Google API Services User Data Policy, including the Limited Use requirements.'
+    }
+  },
+  {
+    id: 'third-party',
+    num: '5',
     title: 'Maps and Third-Party API Integration',
     content: [
       'The Application utilizes robust third-party mapping frameworks (such as Mapbox or standard open-source geospatial tools) to render the base map tiles of the Rivers State University campus.'
@@ -210,10 +250,10 @@ const PRIVACY_SECTIONS: DocSection[] = [
   },
   {
     id: 'storage',
-    num: '4',
+    num: '6',
     title: 'Data Storage and Local Caching',
     content: [
-      'To optimize performance, reduce internet data consumption, and ensure fast response times when searching for local student aliases, landmarks, and faculties, certain static application assets—such as the university timetable layouts and localized campus landmarks—are cached directly on your device’s local storage.'
+      'To optimize performance, reduce internet data consumption, and ensure fast response times when searching for local student aliases, landmarks, and faculties, certain static application assets—such as university timetable layouts and localized campus landmarks—are cached directly on your device’s local storage.'
     ],
     bullets: [
       {
@@ -222,32 +262,32 @@ const PRIVACY_SECTIONS: DocSection[] = [
       },
       {
         bold: 'User Control:',
-        normal: 'You can easily clear this localized application cache at any time through your operating system\'s application settings.'
+        normal: 'You can easily clear this localized application cache at any time through your browser or operating system\'s application settings.'
       }
     ]
   },
   {
     id: 'security',
-    num: '5',
+    num: '7',
     title: 'Security',
     content: [
-      'Because our System does not collect, manage, or host any personal user files or database repositories, the risk of traditional personal data breaches or credential leaks is entirely mitigated. We protect the integrity of the application platform by utilizing secure transmission protocols (such as HTTPS) for fetching updated university schedules or public landmark coordinates.'
+      'Because our System does not manage or host personal user files or database repositories on external servers, the risk of traditional personal data breaches or credential leaks is minimized. We protect the integrity of the application platform by utilizing secure transmission protocols (such as HTTPS) for fetching updated university schedules, public landmark coordinates, and communicating with Google APIs.'
     ]
   },
   {
     id: 'revisions',
-    num: '6',
+    num: '8',
     title: 'Changes to This Privacy Policy',
     content: [
-      'We may periodically update this Privacy Policy to reflect changes in the application’s functionality or relevant institutional frameworks. Any updates will be accompanied by a revised "Effective Date" at the top of this document. Since the system does not use or store your contact information, we encourage you to review this page within the application settings dynamically to stay informed of our data-handling practices.'
+      'We may periodically update this Privacy Policy to reflect changes in the application’s functionality or relevant institutional frameworks. Any updates will be accompanied by a revised "Effective Date" at the top of this document. Since the system does not store your contact information, we encourage you to review this page within the application settings dynamically to stay informed of our data-handling practices.'
     ]
   },
   {
     id: 'contact',
-    num: '7',
-    title: 'Contact and Feedback',
+    num: '9',
+    title: 'Contact and Data Deletion Support',
     content: [
-      'If you have any questions, feedback, or technical inquiries regarding this Privacy Policy or the operational mechanics of the application, please contact the development team through the designated developer channel or repository provided in the application interface.'
+      'If you have any questions, feedback, or technical inquiries regarding this Privacy Policy, your Google user data, or wish to request data deletion assistance, please contact the development team at progressphilemon@gmail.com or through the designated developer channel in the application interface.'
     ]
   }
 ];
