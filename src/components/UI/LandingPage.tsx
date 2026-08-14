@@ -31,7 +31,10 @@ import {
   RotateCcw,
   Sliders,
   Car,
-  Menu
+  Menu,
+  Shield,
+  FileText,
+  Scale
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Polyline, Popup } from 'react-leaflet';
 import L from 'leaflet';
@@ -44,6 +47,8 @@ interface LandingPageProps {
   isDarkMode: boolean;
   setIsDarkMode: (val: boolean) => void;
   onNavigateToMap: (initialLocation?: Location | null, openTimetable?: boolean, openEvents?: boolean) => void;
+  onOpenTerms?: () => void;
+  onOpenPrivacy?: () => void;
 }
 
 interface SimStep {
@@ -108,7 +113,13 @@ const SIM_ROUTE: SimStep[] = [
   }
 ];
 
-export function LandingPage({ isDarkMode, setIsDarkMode, onNavigateToMap }: LandingPageProps) {
+export function LandingPage({ 
+  isDarkMode, 
+  setIsDarkMode, 
+  onNavigateToMap,
+  onOpenTerms,
+  onOpenPrivacy
+}: LandingPageProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showResults, setShowResults] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -401,6 +412,38 @@ export function LandingPage({ isDarkMode, setIsDarkMode, onNavigateToMap }: Land
             >
               <HelpCircle size={15} className="text-sky-500" />
               <span>Help & FAQ</span>
+            </a>
+            <a 
+              href="/privacy.html"
+              onClick={(e) => {
+                if (onOpenPrivacy) {
+                  e.preventDefault();
+                  setIsMobileMenuOpen(false);
+                  onOpenPrivacy();
+                } else {
+                  setIsMobileMenuOpen(false);
+                }
+              }}
+              className="flex items-center gap-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 hover:text-emerald-600 cursor-pointer border-b border-slate-100 dark:border-slate-800/80"
+            >
+              <Shield size={15} className="text-emerald-500" />
+              <span>Privacy Policy</span>
+            </a>
+            <a 
+              href="/terms.html"
+              onClick={(e) => {
+                if (onOpenTerms) {
+                  e.preventDefault();
+                  setIsMobileMenuOpen(false);
+                  onOpenTerms();
+                } else {
+                  setIsMobileMenuOpen(false);
+                }
+              }}
+              className="flex items-center gap-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 hover:text-blue-600 cursor-pointer border-b border-slate-100 dark:border-slate-800/80"
+            >
+              <FileText size={15} className="text-blue-500" />
+              <span>Terms of Service</span>
             </a>
 
             <button
@@ -1108,27 +1151,84 @@ export function LandingPage({ isDarkMode, setIsDarkMode, onNavigateToMap }: Land
         "py-12 px-6 lg:px-16 border-t mt-auto text-xs font-mono transition-colors",
         isDarkMode ? "bg-slate-950 border-slate-900 text-slate-400" : "bg-white border-slate-200 text-slate-600"
       )}>
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-full bg-slate-950 text-white dark:bg-white dark:text-slate-950 flex items-center justify-center font-bold">
-              G
+        <div className="max-w-7xl mx-auto flex flex-col gap-8">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-6 border-b border-slate-200/80 dark:border-slate-850">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-slate-950 text-white dark:bg-white dark:text-slate-950 flex items-center justify-center font-black text-sm shadow-sm">
+                G
+              </div>
+              <div>
+                <span className="font-bold text-sm uppercase tracking-wider text-slate-950 dark:text-white block">
+                  CampusGryd RSU
+                </span>
+                <span className="text-[10px] text-slate-500 uppercase tracking-wider">
+                  Rivers State University, Port Harcourt
+                </span>
+              </div>
             </div>
-            <span className="font-bold uppercase tracking-wider text-slate-950 dark:text-white">
-              CampusGryd RSU • Rivers State University
-            </span>
+
+            {/* Google API Limited Use / Compliance Badge */}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[10px] text-slate-600 dark:text-slate-300">
+              <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
+              <span>Google API Services User Data Policy & Limited Use Compliant</span>
+            </div>
           </div>
 
-          <p className="text-[10px] uppercase">
-            © {new Date().getFullYear()} RSU CampusGryd Navigation. All rights reserved.
-          </p>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-1 text-center md:text-left">
+              <p className="text-[10px] uppercase text-slate-500">
+                © {new Date().getFullYear()} RSU CampusGryd Navigation System. All rights reserved.
+              </p>
+              <p className="text-[9px] text-slate-400">
+                Built for students, faculty, and campus visitors. No tracking cookies or persistent personal telemetry.
+              </p>
+            </div>
 
-          <div className="flex items-center gap-6 font-bold uppercase text-[10px]">
-            <button onClick={() => onNavigateToMap()} className="hover:text-slate-950 dark:hover:text-white cursor-pointer">
-              Map View
-            </button>
-            <button onClick={() => onNavigateToMap(null, true)} className="hover:text-slate-950 dark:hover:text-white cursor-pointer">
-              Timetable
-            </button>
+            {/* Footer Navigation & Legal Buttons */}
+            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 font-bold uppercase text-[11px]">
+              <button 
+                onClick={() => onNavigateToMap()} 
+                className="hover:text-slate-950 dark:hover:text-white transition-colors cursor-pointer"
+              >
+                Map View
+              </button>
+              <button 
+                onClick={() => onNavigateToMap(null, true)} 
+                className="hover:text-slate-950 dark:hover:text-white transition-colors cursor-pointer"
+              >
+                Class Schedule
+              </button>
+
+              <a 
+                href="/privacy.html"
+                onClick={(e) => {
+                  if (onOpenPrivacy) {
+                    e.preventDefault();
+                    onOpenPrivacy();
+                  }
+                }}
+                className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors flex items-center gap-1.5 py-1 px-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-900 cursor-pointer"
+                title="View Privacy Policy and Google User Data Handling"
+              >
+                <Shield size={13} className="text-emerald-500" />
+                <span>Privacy Policy</span>
+              </a>
+
+              <a 
+                href="/terms.html"
+                onClick={(e) => {
+                  if (onOpenTerms) {
+                    e.preventDefault();
+                    onOpenTerms();
+                  }
+                }}
+                className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1.5 py-1 px-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-900 cursor-pointer"
+                title="View Terms of Service and Institutional Legal Guidelines"
+              >
+                <FileText size={13} className="text-blue-500" />
+                <span>Terms of Service</span>
+              </a>
+            </div>
           </div>
         </div>
       </footer>

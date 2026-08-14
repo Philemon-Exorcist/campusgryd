@@ -1274,6 +1274,8 @@ export default function App() {
       <LandingPage 
         isDarkMode={isDarkMode}
         setIsDarkMode={setIsDarkMode}
+        onOpenTerms={() => { window.location.href = '/terms.html'; }}
+        onOpenPrivacy={() => { window.location.href = '/privacy.html'; }}
         onNavigateToMap={(initialLocation, openTimetable, openEvents) => {
           if (initialLocation) {
             handleLocationSelect(initialLocation);
