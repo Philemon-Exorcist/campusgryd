@@ -26,6 +26,8 @@ interface SearchOverlayProps {
   setActiveCategory: (cat: any) => void;
   getCategoryIcon: (type: string) => React.ReactNode;
   onToggleChat: () => void;
+  highlightedLocationId?: string | null;
+  onHighlightLocation?: (id: string | null) => void;
 }
 
 export const SearchOverlay: React.FC<SearchOverlayProps> = ({
@@ -49,7 +51,9 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
   handleGetDirections,
   setActiveCategory,
   getCategoryIcon,
-  onToggleChat
+  onToggleChat,
+  highlightedLocationId,
+  onHighlightLocation
 }) => {
   const showStartPoint = !!selectedLocation || !!startLocation || isNavigating || (isSearchFocused && searchMode === 'start');
 
@@ -174,28 +178,56 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
       <AnimatePresence>
         {isSearchFocused && searchResults.length > 0 && (
           <motion.div 
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
+            initial={{ height: 0, opacity: 0, scale: 0.98 }}
+            animate={{ height: 'auto', opacity: 1, scale: 1 }}
+            exit={{ height: 0, opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             className="w-full max-w-2xl mt-2 bg-rsu-card rounded-2xl shadow-2xl border border-rsu-border overflow-hidden max-h-64 overflow-y-auto no-scrollbar"
           >
-            {searchResults.map(loc => (
-              <button
-                key={loc.id}
-                className="w-full flex items-center px-4 py-3 hover:bg-rsu-bg text-left transition-colors border-b border-rsu-border last:border-0"
-                onClick={() => handleLocationSelect(loc)}
-              >
-                <div className="p-2 bg-rsu-bg rounded-lg mr-3 text-rsu-green">
-                  {getCategoryIcon(loc.type)}
-                </div>
-                <div className="flex-1">
-                  <div className="font-bold text-rsu-text leading-tight">{loc.officialName}</div>
-                  <div className="text-xs text-rsu-muted mt-0.5">
-                    {loc.aliases.join(', ')}
+            {searchResults.map((loc, idx) => {
+              const isItemHighlighted = highlightedLocationId === loc.id;
+              return (
+                <motion.button
+                  key={loc.id}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 8 }}
+                  transition={{ duration: 0.18, delay: Math.min(idx * 0.025, 0.2) }}
+                  whileHover={{ scale: 1.005 }}
+                  whileTap={{ scale: 0.99 }}
+                  onMouseEnter={() => onHighlightLocation?.(loc.id)}
+                  onMouseLeave={() => onHighlightLocation?.(null)}
+                  onFocus={() => onHighlightLocation?.(loc.id)}
+                  onBlur={() => onHighlightLocation?.(null)}
+                  className={cn(
+                    "w-full flex items-center px-4 py-3 text-left transition-colors border-b border-rsu-border last:border-0",
+                    isItemHighlighted ? "bg-rsu-navy/10 dark:bg-slate-800/80" : "hover:bg-rsu-bg dark:hover:bg-slate-800/40"
+                  )}
+                  onClick={() => {
+                    onHighlightLocation?.(null);
+                    handleLocationSelect(loc);
+                  }}
+                >
+                  <div className={cn(
+                    "p-2 rounded-lg mr-3 transition-colors",
+                    isItemHighlighted 
+                      ? "bg-emerald-500 text-white shadow-sm" 
+                      : "bg-rsu-bg text-rsu-green dark:bg-slate-800 dark:text-emerald-400"
+                  )}>
+                    {getCategoryIcon(loc.type)}
                   </div>
-                </div>
-              </button>
-            ))}
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-rsu-text leading-tight truncate">{loc.officialName}</div>
+                    <div className="text-xs text-rsu-muted mt-0.5 truncate">
+                      {loc.aliases.join(', ') || loc.type}
+                    </div>
+                  </div>
+                  <div className="text-[10px] font-mono uppercase text-rsu-muted tracking-wider ml-2 shrink-0">
+                    {loc.type}
+                  </div>
+                </motion.button>
+              );
+            })}
           </motion.div>
         )}
       </AnimatePresence>

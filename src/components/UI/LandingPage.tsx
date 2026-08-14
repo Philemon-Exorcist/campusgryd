@@ -259,7 +259,7 @@ export function LandingPage({
   return (
     <div className={cn(
       "min-h-screen w-full flex flex-col font-sans transition-colors duration-500 overflow-x-hidden selection:bg-slate-900 selection:text-white",
-      isDarkMode ? "bg-slate-950 text-slate-100" : "bg-[#F3F4F6] text-slate-900"
+      isDarkMode ? "bg-slate-950 text-slate-100" : "bg-[#F8FAFC] text-slate-900"
     )}>
       {/* Top Navbar in Urban / Uber Style */}
       <nav className={cn(
@@ -270,14 +270,14 @@ export function LandingPage({
       )}>
         {/* Brand Logo */}
         <div className="flex items-center gap-3 cursor-pointer group" onClick={() => onNavigateToMap()}>
-          <div className="w-9 h-9 rounded-full bg-slate-950 dark:bg-white flex items-center justify-center shadow-md transition-transform duration-300 group-hover:scale-105">
-            <GraduationCap className="text-white dark:text-slate-950" size={19} />
+          <div className="w-9 h-9 rounded-full bg-slate-950 text-white dark:bg-white dark:text-slate-950 flex items-center justify-center shadow-md transition-transform duration-300 group-hover:scale-105">
+            <GraduationCap size={19} />
           </div>
           <div>
             <span className="text-lg font-display font-black tracking-tight leading-none uppercase text-slate-950 dark:text-white">
               Campus<span className="text-blue-600 dark:text-blue-400">Gryd</span>
             </span>
-            <span className="block text-[9px] font-mono font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none mt-0.5">
+            <span className="block text-[9px] font-mono font-bold text-slate-500 uppercase tracking-widest leading-none mt-0.5">
               RIVERS STATE UNIVERSITY
             </span>
           </div>
@@ -339,7 +339,7 @@ export function LandingPage({
               "hidden sm:flex px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-wider transition-all duration-300 hover:scale-[1.03] active:scale-95 cursor-pointer shadow-lg border items-center gap-2",
               isDarkMode 
                 ? "bg-white border-white text-slate-950 shadow-white/10 hover:bg-slate-100" 
-                : "bg-slate-950 border-slate-950 text-white shadow-slate-950/20 hover:bg-slate-850"
+                : "bg-slate-950 border-slate-950 text-white shadow-slate-950/20 hover:bg-slate-900"
             )}
           >
             <Navigation size={13} className="transform rotate-45" />
@@ -353,7 +353,7 @@ export function LandingPage({
               "md:hidden p-2.5 rounded-full border transition-all cursor-pointer shadow-sm flex items-center justify-center",
               isDarkMode 
                 ? "bg-slate-900 border-slate-800 text-slate-100 hover:bg-slate-800" 
-                : "bg-white border-slate-200 text-slate-800 hover:bg-slate-100"
+                : "bg-white border-slate-200 text-slate-700 hover:bg-slate-100"
             )}
             aria-label="Toggle mobile menu"
           >
@@ -377,14 +377,14 @@ export function LandingPage({
           >
             <button 
               onClick={() => { setIsMobileMenuOpen(false); onNavigateToMap(); }} 
-              className="flex items-center gap-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 hover:text-blue-600 cursor-pointer border-b border-slate-100 dark:border-slate-800/80"
+              className="flex items-center gap-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 hover:text-blue-600 cursor-pointer border-b border-slate-100 dark:border-slate-800/80"
             >
               <Map size={15} className="text-blue-500" />
               <span>Campus Map</span>
             </button>
             <button 
               onClick={() => { setIsMobileMenuOpen(false); onNavigateToMap(null, true); }} 
-              className="flex items-center gap-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 hover:text-blue-600 cursor-pointer border-b border-slate-100 dark:border-slate-800/80"
+              className="flex items-center gap-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 hover:text-blue-600 cursor-pointer border-b border-slate-100 dark:border-slate-800/80"
             >
               <Calendar size={15} className="text-emerald-500" />
               <span>Class Schedule</span>
@@ -392,7 +392,7 @@ export function LandingPage({
             <a 
               href="#landmarks-section" 
               onClick={() => setIsMobileMenuOpen(false)}
-              className="flex items-center gap-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 hover:text-blue-600 cursor-pointer border-b border-slate-100 dark:border-slate-800/80"
+              className="flex items-center gap-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 hover:text-blue-600 cursor-pointer border-b border-slate-100 dark:border-slate-800/80"
             >
               <MapPin size={15} className="text-purple-500" />
               <span>Landmarks</span>
@@ -400,7 +400,7 @@ export function LandingPage({
             <a 
               href="#walk-estimator-section" 
               onClick={() => setIsMobileMenuOpen(false)}
-              className="flex items-center gap-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 hover:text-blue-600 cursor-pointer border-b border-slate-100 dark:border-slate-800/80"
+              className="flex items-center gap-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 hover:text-blue-600 cursor-pointer border-b border-slate-100 dark:border-slate-800/80"
             >
               <Footprints size={15} className="text-amber-500" />
               <span>Walk Estimator</span>
@@ -408,7 +408,7 @@ export function LandingPage({
             <a 
               href="#faq-section" 
               onClick={() => setIsMobileMenuOpen(false)}
-              className="flex items-center gap-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 hover:text-blue-600 cursor-pointer border-b border-slate-100 dark:border-slate-800/80"
+              className="flex items-center gap-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 hover:text-blue-600 cursor-pointer border-b border-slate-100 dark:border-slate-800/80"
             >
               <HelpCircle size={15} className="text-sky-500" />
               <span>Help & FAQ</span>
@@ -424,7 +424,7 @@ export function LandingPage({
                   setIsMobileMenuOpen(false);
                 }
               }}
-              className="flex items-center gap-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 hover:text-emerald-600 cursor-pointer border-b border-slate-100 dark:border-slate-800/80"
+              className="flex items-center gap-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 hover:text-emerald-600 cursor-pointer border-b border-slate-100 dark:border-slate-800/80"
             >
               <Shield size={15} className="text-emerald-500" />
               <span>Privacy Policy</span>
@@ -440,7 +440,7 @@ export function LandingPage({
                   setIsMobileMenuOpen(false);
                 }
               }}
-              className="flex items-center gap-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 hover:text-blue-600 cursor-pointer border-b border-slate-100 dark:border-slate-800/80"
+              className="flex items-center gap-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 hover:text-blue-600 cursor-pointer border-b border-slate-100 dark:border-slate-800/80"
             >
               <FileText size={15} className="text-blue-500" />
               <span>Terms of Service</span>
@@ -472,9 +472,9 @@ export function LandingPage({
             RSU CAMPUS NAVIGATION PLATFORM
           </div>
 
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-display font-black tracking-tight text-blue-600 dark:text-white uppercase leading-[1.05]">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-display font-black tracking-tight text-slate-950 dark:text-white uppercase leading-[1.05]">
             Go anywhere, <br className="hidden sm:inline" />
-            <span className="text-blue-500/90 dark:text-slate-400">
+            <span className="text-slate-500 dark:text-slate-400">
               move the way you want
             </span>
           </h1>
@@ -519,7 +519,7 @@ export function LandingPage({
               "flex items-center p-2.5 rounded-full border shadow-lg transition-all focus-within:ring-4 backdrop-blur-md",
               isDarkMode 
                 ? "bg-slate-900/90 border-slate-800 focus-within:ring-white/10" 
-                : "bg-white border-slate-300 focus-within:ring-slate-950/5 shadow-slate-200/80"
+                : "bg-white border-slate-200 focus-within:ring-slate-950/5 shadow-slate-200/80"
             )}>
               <Search className="text-slate-400 ml-4 shrink-0" size={18} />
               <input 
@@ -531,12 +531,12 @@ export function LandingPage({
                   setShowResults(true);
                 }}
                 onFocus={() => setShowResults(true)}
-                className="w-full bg-transparent px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none placeholder-slate-400 font-semibold"
+                className="w-full bg-transparent px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none placeholder:text-slate-400 font-semibold"
               />
               {searchQuery && (
                 <button 
                   onClick={() => { setSearchQuery(''); setShowResults(false); }}
-                  className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full text-slate-400 transition-colors mr-1"
+                  className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-400 transition-colors mr-1"
                 >
                   <X size={14} />
                 </button>
@@ -573,12 +573,12 @@ export function LandingPage({
                             )}
                           >
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-800 dark:text-slate-200 shrink-0">
+                              <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-200 shrink-0">
                                 <MapPin size={15} />
                               </div>
                               <div className="min-w-0">
-                                <p className="font-extrabold text-xs uppercase truncate text-slate-900 dark:text-white">{loc.officialName}</p>
-                                <p className="text-[10px] text-slate-400 truncate mt-0.5">
+                                <p className="font-extrabold text-xs uppercase truncate text-slate-950 dark:text-white">{loc.officialName}</p>
+                                <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
                                   {loc.landmark}
                                 </p>
                               </div>
@@ -631,7 +631,7 @@ export function LandingPage({
                 <span>{is3dTilted ? "3D Tilt View" : "2D Flat View"}</span>
               </button>
 
-              <div className="hidden sm:flex items-center gap-1 bg-slate-200 dark:bg-slate-900 p-1 rounded-full border border-slate-300 dark:border-slate-800">
+              <div className="hidden sm:flex items-center gap-1 bg-slate-200/70 dark:bg-slate-900 p-1 rounded-full border border-slate-200 dark:border-slate-800">
                 {(['map', 'schedule', 'assistant', 'calculator'] as const).map(mode => (
                   <button
                     key={mode}
@@ -640,7 +640,7 @@ export function LandingPage({
                       "px-3 py-1 rounded-full text-[9px] font-mono font-bold uppercase transition-all tracking-wider cursor-pointer",
                       panelMode === mode 
                         ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950 shadow-sm" 
-                        : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                        : "text-slate-600 hover:text-slate-950 dark:hover:text-white"
                     )}
                   >
                     {mode === 'map' ? 'Live Route' : mode === 'schedule' ? 'Class Sync' : mode === 'assistant' ? 'AI Guide' : 'Estimator'}
@@ -682,7 +682,7 @@ export function LandingPage({
                   {/* Clean 3D Style Path Line */}
                   <Polyline 
                     positions={Object.values(SIM_COORDS)}
-                    color="#000000" 
+                    color="#0F172A" 
                     weight={6}
                     opacity={0.85}
                   />
@@ -697,8 +697,8 @@ export function LandingPage({
                       >
                         <Popup className="rsu-popup">
                           <div className="p-2">
-                            <h4 className="font-bold uppercase text-xs">{step?.name}</h4>
-                            <p className="text-[10px] text-slate-500 mt-1">{step?.instruction}</p>
+                            <h4 className="font-bold uppercase text-xs text-slate-900">{step?.name}</h4>
+                            <p className="text-[10px] text-slate-600 mt-1">{step?.instruction}</p>
                           </div>
                         </Popup>
                       </Marker>
@@ -727,31 +727,31 @@ export function LandingPage({
                 "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 w-[88%] max-w-md p-6 rounded-3xl shadow-2xl backdrop-blur-2xl border transition-all duration-300",
                 isDarkMode 
                   ? "bg-slate-900/95 border-slate-800/80 shadow-slate-950/80 text-white" 
-                  : "bg-white/95 border-slate-200/80 shadow-slate-900/15 text-slate-950"
+                  : "bg-white/95 border-slate-200/80 shadow-slate-900/15 text-slate-900"
               )}
             >
               {panelMode === 'map' && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                     <div>
-                      <p className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest">YOUR ROUTE</p>
-                      <h3 className="text-base font-black uppercase tracking-tight mt-0.5">{SIM_ROUTE[simStepIdx].name}</h3>
+                      <p className="text-[9px] font-mono font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">YOUR ROUTE</p>
+                      <h3 className="text-base font-black uppercase tracking-tight mt-0.5 text-slate-950 dark:text-white">{SIM_ROUTE[simStepIdx].name}</h3>
                     </div>
                     <div className="text-right">
                       <p className="text-[9px] font-mono font-bold text-emerald-600 dark:text-emerald-400 uppercase">ARRIVING IN</p>
-                      <p className="text-xl font-black font-display leading-none mt-0.5">{SIM_ROUTE[simStepIdx].duration}</p>
+                      <p className="text-xl font-black font-display leading-none mt-0.5 text-slate-950 dark:text-white">{SIM_ROUTE[simStepIdx].duration}</p>
                     </div>
                   </div>
 
                   {/* 3D Vehicle / Walker Visual Representation */}
-                  <div className="py-3 px-4 bg-slate-100 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                  <div className="py-3 px-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-slate-950 text-white dark:bg-white dark:text-slate-950 flex items-center justify-center shadow-md">
                         <Footprints size={18} />
                       </div>
                       <div>
-                        <p className="text-xs font-black uppercase">RSU Pedestrian Walk</p>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">{SIM_ROUTE[simStepIdx].distance} • Direct Pathway</p>
+                        <p className="text-xs font-black uppercase text-slate-950 dark:text-white">RSU Pedestrian Walk</p>
+                        <p className="text-[10px] text-slate-600 dark:text-slate-400 font-mono mt-0.5">{SIM_ROUTE[simStepIdx].distance} • Direct Pathway</p>
                       </div>
                     </div>
                     <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono text-[9px] font-black rounded-full uppercase border border-emerald-500/20">
@@ -761,10 +761,10 @@ export function LandingPage({
 
                   {/* Live Slider Progress Stepper (Matched -> On the way -> Arriving) */}
                   <div className="space-y-1.5 pt-1">
-                    <div className="flex items-center justify-between text-[9px] font-mono font-bold uppercase text-slate-400">
-                      <span className={cn(simProgress >= 0 ? "text-slate-950 dark:text-white" : "")}>Gate</span>
-                      <span className={cn(simProgress >= 40 ? "text-slate-950 dark:text-white" : "")}>On the way</span>
-                      <span className={cn(simProgress >= 80 ? "text-slate-950 dark:text-white" : "")}>Arriving</span>
+                    <div className="flex items-center justify-between text-[9px] font-mono font-bold uppercase text-slate-500 dark:text-slate-400">
+                      <span className={cn(simProgress >= 0 ? "text-slate-900 dark:text-white" : "")}>Gate</span>
+                      <span className={cn(simProgress >= 40 ? "text-slate-900 dark:text-white" : "")}>On the way</span>
+                      <span className={cn(simProgress >= 80 ? "text-slate-900 dark:text-white" : "")}>Arriving</span>
                     </div>
 
                     <div className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden p-0.5">
@@ -791,14 +791,14 @@ export function LandingPage({
                   <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                     <div>
                       <p className="text-[9px] font-mono font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">COURSE SCHEDULE SYNC</p>
-                      <h3 className="text-base font-black uppercase tracking-tight mt-0.5">ENG 301 - FLUID MECHANICS</h3>
+                      <h3 className="text-base font-black uppercase tracking-tight mt-0.5 text-slate-950 dark:text-white">ENG 301 - FLUID MECHANICS</h3>
                     </div>
                     <span className="px-2.5 py-1 bg-blue-500/10 text-blue-600 dark:text-blue-400 font-mono text-[9px] font-black rounded-full uppercase">
                       11:30 AM NEXT
                     </span>
                   </div>
 
-                  <div className="p-3 bg-slate-100 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs">
+                  <div className="p-3 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200/80 dark:border-slate-800 text-xs">
                     <p className="font-bold text-slate-900 dark:text-slate-100 uppercase">Faculty of Engineering • Workshop B</p>
                     <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">Est. Walk Time: 4 mins from Main Gate</p>
                   </div>
@@ -818,7 +818,7 @@ export function LandingPage({
                   <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                     <div>
                       <p className="text-[9px] font-mono font-bold text-purple-600 dark:text-purple-400 uppercase tracking-widest">GEMINI AI CAMPUS GUIDE</p>
-                      <h3 className="text-sm font-black uppercase tracking-tight mt-0.5">&ldquo;Where is clearance held?&rdquo;</h3>
+                      <h3 className="text-sm font-black uppercase tracking-tight mt-0.5 text-slate-950 dark:text-white">&ldquo;Where is clearance held?&rdquo;</h3>
                     </div>
                     <Sparkles size={18} className="text-purple-500" />
                   </div>
@@ -842,12 +842,12 @@ export function LandingPage({
                   <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                     <div>
                       <p className="text-[9px] font-mono font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">WALK TIME CALCULATOR</p>
-                      <h3 className="text-sm font-black uppercase tracking-tight mt-0.5">{calcStartLoc.officialName.split(' - ')[0]} &rarr; {calcEndLoc.officialName.split(' - ')[0]}</h3>
+                      <h3 className="text-sm font-black uppercase tracking-tight mt-0.5 text-slate-950 dark:text-white">{calcStartLoc.officialName.split(' - ')[0]} &rarr; {calcEndLoc.officialName.split(' - ')[0]}</h3>
                     </div>
                     <Footprints size={18} className="text-emerald-500" />
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 text-center p-3 bg-slate-100 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
+                  <div className="grid grid-cols-3 gap-2 text-center p-3 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200/80 dark:border-slate-800">
                     <div>
                       <p className="text-[8px] font-mono font-bold text-slate-400 uppercase">WALK TIME</p>
                       <p className="text-sm font-black text-emerald-600 dark:text-emerald-400 mt-0.5">{estimatedWalkMins} mins</p>
@@ -877,7 +877,7 @@ export function LandingPage({
 
         {/* Popular Locations Pill Row */}
         <div className="flex flex-wrap items-center justify-center gap-2.5 pt-10">
-          <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest mr-2">
+          <span className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest mr-2">
             POPULAR RSU DESTINATIONS:
           </span>
           {popularLocations.map(loc => (
@@ -888,7 +888,7 @@ export function LandingPage({
                 "px-4 py-2 rounded-full border text-xs font-bold transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-sm",
                 isDarkMode 
                   ? "bg-slate-900 border-slate-800 text-slate-200 hover:border-white" 
-                  : "bg-white border-slate-300 text-slate-800 hover:border-slate-950"
+                  : "bg-white border-slate-200 text-slate-700 hover:border-slate-400"
               )}
             >
               {loc.officialName.split(' - ')[0]}
@@ -916,7 +916,7 @@ export function LandingPage({
             {/* Capability Card 1 */}
             <div className={cn(
               "p-8 rounded-3xl border transition-all duration-300 hover:shadow-xl space-y-4",
-              isDarkMode ? "bg-slate-950 border-slate-850" : "bg-[#F9FAFB] border-slate-200"
+              isDarkMode ? "bg-slate-950 border-slate-850" : "bg-[#F8FAFC] border-slate-200"
             )}>
               <div className="w-12 h-12 rounded-2xl bg-slate-950 text-white dark:bg-white dark:text-slate-950 flex items-center justify-center shadow-md">
                 <Navigation size={22} className="transform rotate-45" />
@@ -924,7 +924,7 @@ export function LandingPage({
               <h3 className="text-xl font-display font-black uppercase text-slate-950 dark:text-white">
                 Geodetic Turn Guidance
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
                 Step-by-step pedestrian routes mapped across RSU lecture theaters, Senate buildings, hostels, and sports arenas with walking time estimates.
               </p>
             </div>
@@ -932,7 +932,7 @@ export function LandingPage({
             {/* Capability Card 2 */}
             <div className={cn(
               "p-8 rounded-3xl border transition-all duration-300 hover:shadow-xl space-y-4",
-              isDarkMode ? "bg-slate-950 border-slate-850" : "bg-[#F9FAFB] border-slate-200"
+              isDarkMode ? "bg-slate-950 border-slate-850" : "bg-[#F8FAFC] border-slate-200"
             )}>
               <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-md">
                 <Calendar size={22} />
@@ -940,7 +940,7 @@ export function LandingPage({
               <h3 className="text-xl font-display font-black uppercase text-slate-950 dark:text-white">
                 Course Timetable Sync
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
                 Sync your weekly lecture timetable. Get direct 1-tap navigation to your specific lecture venue before class starts.
               </p>
             </div>
@@ -948,7 +948,7 @@ export function LandingPage({
             {/* Capability Card 3 */}
             <div className={cn(
               "p-8 rounded-3xl border transition-all duration-300 hover:shadow-xl space-y-4",
-              isDarkMode ? "bg-slate-950 border-slate-850" : "bg-[#F9FAFB] border-slate-200"
+              isDarkMode ? "bg-slate-950 border-slate-850" : "bg-[#F8FAFC] border-slate-200"
             )}>
               <div className="w-12 h-12 rounded-2xl bg-purple-600 text-white flex items-center justify-center shadow-md">
                 <Sparkles size={22} />
@@ -956,7 +956,7 @@ export function LandingPage({
               <h3 className="text-xl font-display font-black uppercase text-slate-950 dark:text-white">
                 AI Campus Assistant
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
                 Ask Gemini AI natural questions about clearance procedures, faculty office hours, exam centers, and shortcut pathways.
               </p>
             </div>
@@ -986,7 +986,7 @@ export function LandingPage({
                   "px-4 py-2 rounded-full text-xs font-mono font-bold uppercase transition-all cursor-pointer border",
                   activeTab === tab
                     ? "bg-slate-950 border-slate-950 text-white dark:bg-white dark:border-white dark:text-slate-950 shadow-md"
-                    : "bg-white border-slate-200 text-slate-600 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300 hover:bg-slate-100"
+                    : "bg-white border-slate-200 text-slate-700 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300 hover:bg-slate-50"
                 )}
               >
                 {tab === 'all' ? 'All Locations' : tab === 'faculty' ? 'Faculties' : tab === 'admin' ? 'Senate / Admin' : tab === 'facility' ? 'Facilities' : 'Entrances'}
@@ -1026,7 +1026,7 @@ export function LandingPage({
                   </div>
                 </div>
 
-                <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-mono font-bold uppercase text-slate-950 dark:text-white">
+                <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-mono font-bold uppercase text-slate-900 dark:text-white">
                   <span>Trace Path &rarr;</span>
                   <span className="text-[10px] text-slate-400">{loc.coordinates[0].toFixed(3)}, {loc.coordinates[1].toFixed(3)}</span>
                 </div>
@@ -1039,7 +1039,7 @@ export function LandingPage({
       {/* WALK TIME ESTIMATOR SECTION */}
       <section id="walk-estimator-section" className={cn(
         "py-20 px-6 lg:px-16 border-t transition-colors",
-        isDarkMode ? "bg-slate-900/40 border-slate-900" : "bg-[#F3F4F6] border-slate-200"
+        isDarkMode ? "bg-slate-900/40 border-slate-900" : "bg-[#F8FAFC] border-slate-200"
       )}>
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="text-center space-y-2">
@@ -1057,11 +1057,11 @@ export function LandingPage({
           )}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="text-xs font-mono font-bold text-slate-400 uppercase">Starting Point:</label>
+                <label className="text-xs font-mono font-bold text-slate-500 uppercase">Starting Point:</label>
                 <select 
                   value={calcStartId}
                   onChange={(e) => setCalcStartId(e.target.value)}
-                  className="w-full mt-2 p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-sm font-bold text-slate-900 dark:text-white focus:outline-none"
+                  className="w-full mt-2 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm font-bold text-slate-900 dark:text-white focus:outline-none"
                 >
                   {locations.map(l => (
                     <option key={l.id} value={l.id}>{l.officialName}</option>
@@ -1070,11 +1070,11 @@ export function LandingPage({
               </div>
 
               <div>
-                <label className="text-xs font-mono font-bold text-slate-400 uppercase">Destination:</label>
+                <label className="text-xs font-mono font-bold text-slate-500 uppercase">Destination:</label>
                 <select 
                   value={calcEndId}
                   onChange={(e) => setCalcEndId(e.target.value)}
-                  className="w-full mt-2 p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-sm font-bold text-slate-900 dark:text-white focus:outline-none"
+                  className="w-full mt-2 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm font-bold text-slate-900 dark:text-white focus:outline-none"
                 >
                   {locations.map(l => (
                     <option key={l.id} value={l.id}>{l.officialName}</option>
@@ -1083,7 +1083,7 @@ export function LandingPage({
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4 text-center p-6 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+            <div className="grid grid-cols-3 gap-4 text-center p-6 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800">
               <div>
                 <p className="text-[10px] font-mono font-bold text-slate-400 uppercase">WALKING TIME</p>
                 <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{estimatedWalkMins} Mins</p>
@@ -1134,7 +1134,7 @@ export function LandingPage({
                 className="w-full p-6 text-left flex items-center justify-between gap-4 font-display font-black text-sm sm:text-base uppercase text-slate-950 dark:text-white cursor-pointer"
               >
                 <span>{faq.q}</span>
-                <ChevronRight size={18} className={cn("transition-transform duration-300 shrink-0", expandedFaq === idx ? "transform rotate-90" : "")} />
+                <ChevronRight size={18} className={cn("transition-transform duration-300 shrink-0 text-slate-400", expandedFaq === idx ? "transform rotate-90" : "")} />
               </button>
               {expandedFaq === idx && (
                 <div className="px-6 pb-6 text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium border-t border-slate-100 dark:border-slate-800/80 pt-4">
@@ -1149,7 +1149,7 @@ export function LandingPage({
       {/* FOOTER */}
       <footer className={cn(
         "py-12 px-6 lg:px-16 border-t mt-auto text-xs font-mono transition-colors",
-        isDarkMode ? "bg-slate-950 border-slate-900 text-slate-400" : "bg-white border-slate-200 text-slate-600"
+        isDarkMode ? "bg-slate-950 border-slate-900 text-slate-400" : "bg-white border-slate-200 text-slate-500"
       )}>
         <div className="max-w-7xl mx-auto flex flex-col gap-8">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-6 border-b border-slate-200/80 dark:border-slate-850">
@@ -1161,7 +1161,7 @@ export function LandingPage({
                 <span className="font-bold text-sm uppercase tracking-wider text-slate-950 dark:text-white block">
                   CampusGryd RSU
                 </span>
-                <span className="text-[10px] text-slate-500 uppercase tracking-wider">
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                   Rivers State University, Port Harcourt
                 </span>
               </div>
@@ -1176,25 +1176,25 @@ export function LandingPage({
 
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="space-y-1 text-center md:text-left">
-              <p className="text-[10px] uppercase text-slate-500">
-                © {new Date().getFullYear()} RSU CampusGryd Navigation System. All rights reserved.
+              <p className="text-[10px] uppercase text-slate-400">
+                © {new Date().getFullYear()} CampusGryd. All rights reserved.
               </p>
-              <p className="text-[9px] text-slate-400">
+              <p className="text-[9px] text-slate-400 dark:text-slate-500">
                 Built for students, faculty, and campus visitors. No tracking cookies or persistent personal telemetry.
               </p>
             </div>
 
             {/* Footer Navigation & Legal Buttons */}
-            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 font-bold uppercase text-[11px]">
+            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 font-bold uppercase text-[11px] text-slate-500 dark:text-slate-400">
               <button 
                 onClick={() => onNavigateToMap()} 
-                className="hover:text-slate-950 dark:hover:text-white transition-colors cursor-pointer"
+                className="hover:text-blue-600 dark:hover:text-white transition-colors cursor-pointer"
               >
                 Map View
               </button>
               <button 
                 onClick={() => onNavigateToMap(null, true)} 
-                className="hover:text-slate-950 dark:hover:text-white transition-colors cursor-pointer"
+                className="hover:text-blue-600 dark:hover:text-white transition-colors cursor-pointer"
               >
                 Class Schedule
               </button>
@@ -1207,7 +1207,7 @@ export function LandingPage({
                     onOpenPrivacy();
                   }
                 }}
-                className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors flex items-center gap-1.5 py-1 px-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-900 cursor-pointer"
+                className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors flex items-center gap-1.5 py-1 px-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-900 cursor-pointer"
                 title="View Privacy Policy and Google User Data Handling"
               >
                 <Shield size={13} className="text-emerald-500" />
@@ -1222,7 +1222,7 @@ export function LandingPage({
                     onOpenTerms();
                   }
                 }}
-                className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1.5 py-1 px-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-900 cursor-pointer"
+                className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1.5 py-1 px-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-900 cursor-pointer"
                 title="View Terms of Service and Institutional Legal Guidelines"
               >
                 <FileText size={13} className="text-blue-500" />

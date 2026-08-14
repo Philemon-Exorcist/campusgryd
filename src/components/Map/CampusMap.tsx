@@ -16,7 +16,9 @@ interface CampusMapProps {
   mapFeatures?: any;
   onLocationSelect: (loc: Location) => void;
   setStartLocation?: (loc: Location | null) => void;
-  createCustomIcon: (type: string, isActive: boolean) => L.DivIcon;
+  createCustomIcon: (type: string, isActive: boolean, isHighlighted?: boolean) => L.DivIcon;
+  highlightedLocationId?: string | null;
+  searchResults?: Location[];
 }
 
 function MapController({ center, zoom, onMapMove }: { center: [number, number], zoom: number, onMapMove: (center: [number, number], zoom: number) => void }) {
@@ -330,6 +332,8 @@ export const CampusMap: React.FC<CampusMapProps & {
   onLocationSelect,
   setStartLocation,
   createCustomIcon,
+  highlightedLocationId,
+  searchResults,
   onMapMove,
   mapRotation,
   setMapRotation
@@ -374,40 +378,47 @@ export const CampusMap: React.FC<CampusMapProps & {
         />
       )}
       
-      {filteredLocations.map(loc => (
-        <Marker 
-          key={loc.id} 
-          position={loc.coordinates}
-          icon={createCustomIcon(loc.type, selectedLocation?.id === loc.id || startLocation?.id === loc.id)}
-          eventHandlers={{
-            click: () => {
-              onLocationSelect(loc);
-            }
-          }}
-        >
-          <Popup className="rsu-popup">
-            <div className="p-3 min-w-[200px]">
-              <h3 className="font-display font-black text-rsu-navy uppercase text-sm mb-1 leading-tight">{loc.officialName}</h3>
-              <p className="text-[9px] font-bold text-rsu-muted uppercase tracking-widest mb-3">{loc.type}</p>
-              
-              <div className="flex flex-col gap-2">
-                <button
-                  onClick={() => onLocationSelect(loc)}
-                  className="w-full bg-rsu-navy text-white py-2 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-md hover:bg-black transition-all"
-                >
-                  Set as Destination
-                </button>
-                <button
-                  onClick={() => setStartLocation?.(loc)}
-                  className="w-full bg-white dark:bg-rsu-card border border-rsu-navy text-rsu-navy dark:text-white py-2 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-rsu-navy/5 transition-all"
-                >
-                  Set as Start Point
-                </button>
+      {filteredLocations.map(loc => {
+        const isSelected = selectedLocation?.id === loc.id || startLocation?.id === loc.id;
+        const isHighlighted = !isSelected && (
+          highlightedLocationId === loc.id || 
+          (Boolean(searchResults && searchResults.length > 0) && searchResults!.some(s => s.id === loc.id))
+        );
+        return (
+          <Marker 
+            key={loc.id} 
+            position={loc.coordinates}
+            icon={createCustomIcon(loc.type, isSelected, isHighlighted)}
+            eventHandlers={{
+              click: () => {
+                onLocationSelect(loc);
+              }
+            }}
+          >
+            <Popup className="rsu-popup">
+              <div className="p-3 min-w-[200px]">
+                <h3 className="font-display font-black text-rsu-navy uppercase text-sm mb-1 leading-tight">{loc.officialName}</h3>
+                <p className="text-[9px] font-bold text-rsu-muted uppercase tracking-widest mb-3">{loc.type}</p>
+                
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={() => onLocationSelect(loc)}
+                    className="w-full bg-rsu-navy text-white py-2 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-md hover:bg-black transition-all"
+                  >
+                    Set as Destination
+                  </button>
+                  <button
+                    onClick={() => setStartLocation?.(loc)}
+                    className="w-full bg-white dark:bg-rsu-card border border-rsu-navy text-rsu-navy dark:text-white py-2 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-rsu-navy/5 transition-all"
+                  >
+                    Set as Start Point
+                  </button>
+                </div>
               </div>
-            </div>
-          </Popup>
-        </Marker>
-      ))}
+            </Popup>
+          </Marker>
+        );
+      })}
 
       {userLocation && (
         <Marker 

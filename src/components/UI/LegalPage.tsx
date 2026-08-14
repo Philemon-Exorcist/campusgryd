@@ -231,8 +231,34 @@ const PRIVACY_SECTIONS: DocSection[] = [
     }
   },
   {
-    id: 'third-party',
+    id: 'ai-integrations',
     num: '5',
+    title: 'AI & Third-Party Processing Declaration (Data Isolation & Zero Retention)',
+    content: [
+      'CampusGryd incorporates artificial intelligence tools strictly for optical character recognition (OCR) of university timetable documents and conversational campus navigation assistance.'
+    ],
+    bullets: [
+      {
+        bold: 'AI Provider & Model:',
+        normal: 'Google Gemini API (Google Cloud Vertex AI / Google AI Studio - Gemini 2.5/3.5 Flash).'
+      },
+      {
+        bold: 'Purpose of AI Processing:',
+        normal: '(1) Parsing user-uploaded departmental timetable image files into course schedule entries. (2) Answering conversational inquiries regarding RSU campus buildings, clearance desks, and lecture halls.'
+      },
+      {
+        bold: 'Complete Data Isolation:',
+        normal: 'AI processing pipelines operate in strict isolation from Google User Data. Google OAuth access tokens, user email addresses, Google profile identifiers, and personal Google Calendar items are NEVER passed to, shared with, or accessible by the AI service.'
+      },
+      {
+        bold: 'Zero Retention & No Model Training:',
+        normal: 'All AI inference requests are transient and stateless. Inputs (such as timetable images or text queries) are processed on-the-fly with zero persistent data retention and are never stored or used by third-party AI models for machine learning or foundation model training.'
+      }
+    ]
+  },
+  {
+    id: 'third-party',
+    num: '6',
     title: 'Maps and Third-Party API Integration',
     content: [
       'The Application utilizes robust third-party mapping frameworks (such as Mapbox or standard open-source geospatial tools) to render the base map tiles of the Rivers State University campus.'
@@ -250,7 +276,7 @@ const PRIVACY_SECTIONS: DocSection[] = [
   },
   {
     id: 'storage',
-    num: '6',
+    num: '7',
     title: 'Data Storage and Local Caching',
     content: [
       'To optimize performance, reduce internet data consumption, and ensure fast response times when searching for local student aliases, landmarks, and faculties, certain static application assets—such as university timetable layouts and localized campus landmarks—are cached directly on your device’s local storage.'
@@ -268,7 +294,7 @@ const PRIVACY_SECTIONS: DocSection[] = [
   },
   {
     id: 'security',
-    num: '7',
+    num: '8',
     title: 'Security',
     content: [
       'Because our System does not manage or host personal user files or database repositories on external servers, the risk of traditional personal data breaches or credential leaks is minimized. We protect the integrity of the application platform by utilizing secure transmission protocols (such as HTTPS) for fetching updated university schedules, public landmark coordinates, and communicating with Google APIs.'
@@ -276,7 +302,7 @@ const PRIVACY_SECTIONS: DocSection[] = [
   },
   {
     id: 'revisions',
-    num: '8',
+    num: '9',
     title: 'Changes to This Privacy Policy',
     content: [
       'We may periodically update this Privacy Policy to reflect changes in the application’s functionality or relevant institutional frameworks. Any updates will be accompanied by a revised "Effective Date" at the top of this document. Since the system does not store your contact information, we encourage you to review this page within the application settings dynamically to stay informed of our data-handling practices.'
@@ -284,7 +310,7 @@ const PRIVACY_SECTIONS: DocSection[] = [
   },
   {
     id: 'contact',
-    num: '9',
+    num: '10',
     title: 'Contact and Data Deletion Support',
     content: [
       'If you have any questions, feedback, or technical inquiries regarding this Privacy Policy, your Google user data, or wish to request data deletion assistance, please contact the development team at progressphilemon@gmail.com or through the designated developer channel in the application interface.'
@@ -714,6 +740,12 @@ export const LegalPage: React.FC<LegalPageProps> = ({ initialTab = 'terms', onBa
             >
               Return to Map
             </button>
+          </div>
+
+          <div className="pt-4 pb-8 text-center">
+            <p className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
+              © {new Date().getFullYear()} CampusGryd. All rights reserved.
+            </p>
           </div>
         </div>
       </div>

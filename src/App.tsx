@@ -99,6 +99,7 @@ export default function App() {
   const [isNavigating, setIsNavigating] = useState(false);
   const [isSatelliteView, setIsSatelliteView] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [highlightedLocationId, setHighlightedLocationId] = useState<string | null>(null);
   const [unauthorizedDomain, setUnauthorizedDomain] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: 'error' | 'info' | 'success' } | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -108,6 +109,18 @@ export default function App() {
     }
     return false;
   });
+
+  // Sync dark class on documentElement for Tailwind's dark: variant
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
   const [savedLocationIds, setSavedLocationIds] = useState<string[]>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('saved_locations');
@@ -180,26 +193,32 @@ export default function App() {
 
   // Fetch community-added locations upon mount and sync updates
   useEffect(() => {
-    const q = collection(db, 'user_locations');
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const list: Location[] = [];
-      snapshot.forEach((doc) => {
-        const d = doc.data();
-        list.push({
-          id: d.id,
-          officialName: d.officialName,
-          aliases: d.aliases || [],
-          coordinates: d.coordinates as [number, number],
-          type: d.type || 'landmark',
-          description: d.description || '',
-          landmark: d.landmark || 'No',
+    let unsubscribe = () => {};
+    try {
+      const q = collection(db, 'user_locations');
+      unsubscribe = onSnapshot(q, (snapshot) => {
+        const list: Location[] = [];
+        snapshot.forEach((doc) => {
+          const d = doc.data();
+          if (d && d.id && Array.isArray(d.coordinates) && d.coordinates.length === 2) {
+            list.push({
+              id: d.id,
+              officialName: d.officialName || 'Campus Landmark',
+              aliases: d.aliases || [],
+              coordinates: d.coordinates as [number, number],
+              type: d.type || 'landmark',
+              description: d.description || '',
+              landmark: d.landmark || 'No',
+            });
+          }
         });
+        setCustomLocations(list);
+      }, (error) => {
+        console.warn("User locations notice: ", error?.message || error);
       });
-      setCustomLocations(list);
-    }, (error) => {
-      console.error("Error fetching user locations: ", error);
-      handleFirestoreError(error, OperationType.GET, 'user_locations');
-    });
+    } catch (err) {
+      console.warn("Could not attach user locations listener:", err);
+    }
 
     return () => unsubscribe();
   }, []);
@@ -721,16 +740,6 @@ export default function App() {
       setIsSpeaking(false);
     }
   }, [isSpeaking, isOffline, getAiInstance]);
-
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [isDarkMode]);
 
   const fuse = useMemo(() => {
     return new Fuse(allLocations, {
@@ -1314,6 +1323,8 @@ export default function App() {
           setStartLocation(loc);
         }}
         createCustomIcon={createCustomIcon}
+        highlightedLocationId={highlightedLocationId}
+        searchResults={searchResults}
         onMapMove={onMapMove}
         mapRotation={mapRotation}
         setMapRotation={setMapRotation}
@@ -1366,6 +1377,8 @@ export default function App() {
         setActiveCategory={(cat) => setActiveCategory(cat)}
         getCategoryIcon={getCategoryIcon}
         onToggleChat={() => setIsChatOpen(!isChatOpen)}
+        highlightedLocationId={highlightedLocationId}
+        onHighlightLocation={setHighlightedLocationId}
       />
 
       <FloatingActions 

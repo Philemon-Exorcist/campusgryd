@@ -258,6 +258,9 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
               <p className="text-[9px] font-mono font-bold text-rsu-muted uppercase tracking-widest text-center">
                 By Philemon Progress
               </p>
+              <p className="text-[8px] font-mono text-rsu-muted/80 uppercase tracking-wider text-center mt-1">
+                © {new Date().getFullYear()} CampusGryd. All rights reserved.
+              </p>
               
               <div className="mt-4 flex justify-center gap-2.5 border-t border-rsu-border/10 pt-3">
                 <button 

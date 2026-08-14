@@ -1,8 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Syne:wght@600;700;800&display=swap');
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* 
 :root {
   --rsu-navy: #0F172A;
+  --rsu-navy-light: #1E293B;
   --rsu-green: #22C55E;
   --rsu-white: #FFFFFF;
   --rsu-bg: #F8FAFC;
@@ -24,32 +28,20 @@
   --rsu-card: #111827;
   --rsu-border: #1F2937;
   --rsu-muted: #9CA3AF;
+  --rsu-orange: #3B82F6;
   --rsu-red: #DC2626;
 }
+*/
 
 @theme {
   --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Syne", sans-serif;
-
-  --color-rsu-navy: var(--rsu-navy);
-  --color-rsu-green: var(--rsu-green);
-  --color-rsu-white: var(--rsu-white);
-  --color-rsu-bg: var(--rsu-bg);
-  --color-rsu-text: var(--rsu-text);
-  --color-rsu-card: var(--rsu-card);
-  --color-rsu-border: var(--rsu-border);
-  --color-rsu-muted: var(--rsu-muted);
-  --color-rsu-orange: var(--rsu-orange);
-  --color-rsu-red: var(--rsu-red);
-  --color-rsu-navy-light: var(--rsu-navy-light);
 }
 
 html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
-  background-color: var(--color-rsu-bg);
-  color: var(--color-rsu-text);
   font-family: var(--font-sans);
   transition: background-color 0.3s ease, color 0.3s ease;
 }
@@ -69,36 +61,105 @@ html, body, #root {
   filter: none !important;
 }
 
-/* Custom Leaflet Marker Styling */
+/* Custom Leaflet Marker Styling & Animations */
 .custom-marker {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-rsu-card);
-  border-radius: 50%;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-  border: 2px solid var(--color-rsu-green);
-  transition: transform 0.2s ease, background-color 0.3s ease, border-color 0.3s ease;
-  opacity: 0 !important;
-  pointer-events: auto !important;
-}
-
-.custom-marker:hover {
-  transform: scale(1.2);
-}
-
-.custom-marker.active-highlight {
-  opacity: 1 !important;
-  pointer-events: auto !important;
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  will-change: transform, opacity;
 }
 
-.custom-marker.active {
-  border-color: var(--color-rsu-navy);
-  background: var(--color-rsu-green);
-  color: white;
+.marker-inner-enter {
+  animation: markerEnter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.marker-inner-highlight {
+  animation: markerSearchHighlight 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.marker-inner-active {
+  animation: activePinDrop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.marker-floating-pin {
+  animation: activePinFloat 2.4s ease-in-out infinite alternate;
+}
+
+@keyframes markerEnter {
+  0% {
+    opacity: 0;
+    transform: scale(0.25) translateY(12px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.2) translateY(-3px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes markerSearchHighlight {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translateY(10px);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.35) translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.15) translateY(0);
+  }
+}
+
+@keyframes activePinDrop {
+  0% {
+    opacity: 0;
+    transform: scale(0.4) translateY(-30px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.22) translateY(2px);
+  }
+  80% {
+    transform: scale(0.96) translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes activePinFloat {
+  0% {
+    transform: translateY(0px) scale(1);
+  }
+  100% {
+    transform: translateY(-6px) scale(1.04);
+  }
+}
+
+@keyframes searchRadarRing {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+.search-radar-pulse {
+  animation: searchRadarRing 1.8s cubic-bezier(0, 0.2, 0.8, 1) infinite;
 }
 
 /* Hide Leaflet attribution on mobile if needed or style it */
