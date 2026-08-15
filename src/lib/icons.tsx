@@ -9,12 +9,14 @@ import {
   Trophy, 
   Library, 
   MapPin,
-  BookOpen
+  BookOpen,
+  Compass
 } from 'lucide-react';
 import { cn } from './utils';
 
 export const getCategoryIcon = (type: string) => {
   switch (type) {
+    case 'nearby': return <Compass size={18} />;
     case 'faculty': return <GraduationCap size={18} />;
     case 'college': return <GraduationCap size={18} />;
     case 'department': return <BookOpen size={18} />;
@@ -88,14 +90,14 @@ export const createCustomIcon = (type: string, isActive: boolean, isHighlighted:
     icon = L.divIcon({
       className: cn('custom-marker default-location-dot pointer-events-auto cursor-pointer opacity-0'),
       html: `
-        <div class="relative flex items-center justify-center w-10 h-10 opacity-0" style="opacity: 0 !important; visibility: hidden !important;">
-          <div class="z-10 ${bgColor} w-6 h-6 rounded-full shadow-md border-2 border-white dark:border-slate-800/80 flex items-center justify-center opacity-0" style="opacity: 0 !important;">
-            <div class="w-2 h-2 rounded-full ${dotColor} opacity-0" style="opacity: 0 !important;"></div>
+        <div class="relative flex items-center justify-center w-11 h-11 opacity-0 pointer-events-auto cursor-pointer" style="opacity: 0 !important; pointer-events: auto !important; cursor: pointer !important;">
+          <div class="z-10 ${bgColor} w-7 h-7 rounded-full shadow-md border-2 border-white dark:border-slate-800/80 flex items-center justify-center opacity-0 pointer-events-auto" style="opacity: 0 !important; pointer-events: auto !important;">
+            <div class="w-2.5 h-2.5 rounded-full ${dotColor} opacity-0" style="opacity: 0 !important;"></div>
           </div>
         </div>
       `,
-      iconSize: [40, 40],
-      iconAnchor: [20, 20],
+      iconSize: [44, 44],
+      iconAnchor: [22, 22],
     });
   }
 

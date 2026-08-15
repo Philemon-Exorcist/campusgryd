@@ -92,7 +92,18 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
   console.error('Firestore Error: ', JSON.stringify(errInfo));
 }
 
-type Category = 'all' | 'faculty' | 'college' | 'admin' | 'hostel' | 'food' | 'gate' | 'sports' | 'library' | 'facility' | 'landmark' | 'department';
+const getDistanceInMeters = (coords1: [number, number], coords2: [number, number]) => {
+  const R = 6371e3;
+  const φ1 = coords1[0] * Math.PI/180;
+  const φ2 = coords2[0] * Math.PI/180;
+  const Δφ = (coords2[0]-coords1[0]) * Math.PI/180;
+  const Δλ = (coords2[1]-coords1[1]) * Math.PI/180;
+  const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+};
+
+type Category = 'all' | 'nearby' | 'faculty' | 'college' | 'admin' | 'hostel' | 'food' | 'gate' | 'sports' | 'library' | 'facility' | 'landmark' | 'department';
 
 export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -758,13 +769,35 @@ export default function App() {
     });
   }, [allLocations]);
 
-  const searchResults = useMemo(() => {
-    if (!searchQuery) return [];
-    return fuse.search(searchQuery).map(result => result.item);
-  }, [searchQuery, fuse]);
-
   const filteredLocations = useMemo(() => {
     if (activeCategory === 'all') return allLocations;
+
+    if (activeCategory === 'nearby') {
+      const origin = userLocation || RSU_CENTER;
+      return allLocations.filter(loc => {
+        const isFoodOrFacility = loc.type === 'food' || loc.type === 'facility' ||
+          loc.officialName.toLowerCase().includes('food') ||
+          loc.officialName.toLowerCase().includes('canteen') ||
+          loc.officialName.toLowerCase().includes('cafeteria') ||
+          loc.officialName.toLowerCase().includes('restaurant') ||
+          loc.officialName.toLowerCase().includes('bukka') ||
+          loc.officialName.toLowerCase().includes('shop') ||
+          loc.officialName.toLowerCase().includes('facility') ||
+          loc.officialName.toLowerCase().includes('centre') ||
+          loc.officialName.toLowerCase().includes('center') ||
+          loc.officialName.toLowerCase().includes('clinic') ||
+          loc.officialName.toLowerCase().includes('park') ||
+          loc.officialName.toLowerCase().includes('water');
+        if (!isFoodOrFacility) return false;
+        const dist = getDistanceInMeters(origin, loc.coordinates);
+        return dist <= 500;
+      }).sort((a, b) => {
+        const distA = getDistanceInMeters(origin, a.coordinates);
+        const distB = getDistanceInMeters(origin, b.coordinates);
+        return distA - distB;
+      });
+    }
+
     if (activeCategory === 'department' as any) {
       return allLocations.filter(loc => 
         loc.officialName.toLowerCase().includes('dept') || 
@@ -773,7 +806,25 @@ export default function App() {
       );
     }
     return allLocations.filter(loc => loc.type === activeCategory);
-  }, [activeCategory, allLocations]);
+  }, [activeCategory, allLocations, userLocation]);
+
+  const searchResults = useMemo(() => {
+    if (!searchQuery) {
+      if (activeCategory === 'nearby') {
+        return filteredLocations;
+      }
+      return [];
+    }
+    const results = fuse.search(searchQuery).map(result => result.item);
+    if (activeCategory === 'nearby') {
+      const nearbyIds = new Set(filteredLocations.map(l => l.id));
+      return results.filter(r => nearbyIds.has(r.id));
+    } else if (activeCategory !== 'all') {
+      const catIds = new Set(filteredLocations.map(l => l.id));
+      return results.filter(r => catIds.has(r.id));
+    }
+    return results;
+  }, [searchQuery, fuse, activeCategory, filteredLocations]);
 
   const handleLocationSelect = React.useCallback(async (loc: Location | null) => {
     if (loc) {
@@ -1384,7 +1435,17 @@ export default function App() {
         endSession={endSession}
         handleLocationSelect={handleLocationSelect}
         handleGetDirections={handleGetDirections}
-        setActiveCategory={(cat) => setActiveCategory(cat)}
+        setActiveCategory={(cat) => {
+          setActiveCategory(cat);
+          if (cat === 'nearby') {
+            setIsSearchFocused(true);
+            if (userLocation) {
+              setMapView({ center: userLocation, zoom: 17 });
+            } else {
+              setMapView({ center: RSU_CENTER, zoom: 16 });
+            }
+          }
+        }}
         getCategoryIcon={getCategoryIcon}
         onToggleChat={() => setIsChatOpen(!isChatOpen)}
         highlightedLocationId={highlightedLocationId}

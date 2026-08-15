@@ -442,7 +442,6 @@ export const CampusMap = React.memo<CampusMapProps & {
             key={loc.id} 
             position={loc.coordinates}
             icon={createCustomIcon(loc.type, isSelected, isHighlighted)}
-            opacity={isSelected || isHighlighted ? 1 : 0}
             eventHandlers={{
               click: () => {
                 onLocationSelect(loc);

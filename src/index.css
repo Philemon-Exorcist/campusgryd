@@ -81,7 +81,8 @@ html, body, #root {
 .custom-marker.default-location-dot,
 .leaflet-marker-icon.default-location-dot {
   opacity: 0 !important;
-  visibility: hidden !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
 }
 
 .custom-marker.active-highlight,

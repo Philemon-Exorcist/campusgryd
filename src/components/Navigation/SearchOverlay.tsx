@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Mic, X, Navigation2, Loader2, Volume2, MessageSquare } from 'lucide-react';
+import { Search, Mic, X, Navigation2, Loader2, Volume2, MessageSquare, Compass, Utensils, Building2 } from 'lucide-react';
 import { Location } from '../../types';
 import { cn } from '../../lib/utils';
 
@@ -57,6 +57,22 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
 }) => {
   const showStartPoint = !!selectedLocation || !!startLocation || isNavigating || (isSearchFocused && searchMode === 'start');
 
+  const getDistanceFormatted = (coords: [number, number]) => {
+    const origin = userLocation || [4.8005, 6.9830];
+    const R = 6371e3;
+    const φ1 = origin[0] * Math.PI/180;
+    const φ2 = coords[0] * Math.PI/180;
+    const Δφ = (coords[0]-origin[0]) * Math.PI/180;
+    const Δλ = (coords[1]-origin[1]) * Math.PI/180;
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const dist = Math.round(R * c);
+    return dist < 1000 ? `${dist}m` : `${(dist/1000).toFixed(1)}km`;
+  };
+
+  const isNearbyActive = activeCategory === 'nearby';
+  const showResults = (isSearchFocused || isNearbyActive) && searchResults.length > 0;
+
   return (
     <div className="absolute top-[68px] sm:top-24 left-0 right-0 px-3 sm:px-4 z-10 flex flex-col items-center">
       <div className="w-full max-w-2xl flex flex-col gap-1.5">
@@ -111,7 +127,7 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
               </button>
               <input 
                 type="text"
-                placeholder="To: Search destination..."
+                placeholder={isNearbyActive ? "Search within nearby food & facilities (500m)..." : "To: Search destination..."}
                 className="flex-1 outline-none bg-transparent text-[11px] font-bold text-rsu-text placeholder:text-rsu-muted uppercase tracking-tighter"
                 value={searchMode === 'destination' ? searchQuery : (selectedLocation?.officialName || "")}
                 onChange={(e) => {
@@ -138,7 +154,7 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
                   <Mic size={16} />
                 </button>
               )}
-              {(searchQuery || isNavigating || selectedLocation) && !isListening && (
+              {(searchQuery || isNavigating || selectedLocation || isNearbyActive) && !isListening && (
                 <button 
                   onClick={() => {
                     if (isNavigating) {
@@ -146,12 +162,15 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
                     } else if (searchMode === 'destination') {
                       setSearchQuery('');
                       handleLocationSelect(null as any);
+                      if (isNearbyActive && !searchQuery) {
+                        setActiveCategory('all');
+                      }
                     } else {
                       setSearchQuery('');
                     }
                   }}
                 >
-                  <X size={16} className="text-rsu-muted" />
+                  <X size={16} className="text-rsu-muted hover:text-rsu-text" />
                 </button>
               )}
             </div>
@@ -174,18 +193,31 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
         </div>
       </div>
 
-      {/* Search Results */}
+      {/* Search Results / Nearby Overlay */}
       <AnimatePresence>
-        {isSearchFocused && searchResults.length > 0 && (
+        {showResults && (
           <motion.div 
             initial={{ height: 0, opacity: 0, scale: 0.98 }}
             animate={{ height: 'auto', opacity: 1, scale: 1 }}
             exit={{ height: 0, opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full max-w-2xl mt-2 bg-rsu-card rounded-2xl shadow-2xl border border-rsu-border overflow-hidden max-h-64 overflow-y-auto no-scrollbar"
+            className="w-full max-w-2xl mt-2 bg-rsu-card rounded-2xl shadow-2xl border border-rsu-border overflow-hidden max-h-72 overflow-y-auto no-scrollbar"
           >
+            {isNearbyActive && (
+              <div className="px-4 py-2 bg-emerald-500/10 dark:bg-emerald-950/40 border-b border-emerald-500/20 flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                  <Compass size={14} className="text-emerald-600 dark:text-emerald-400" />
+                  <span>Nearby Food & Facilities within 500m ({searchResults.length})</span>
+                </div>
+                <span className="text-[10px] font-semibold text-emerald-600/80 dark:text-emerald-400/80">
+                  {userLocation ? "From your GPS location" : "From campus center"}
+                </span>
+              </div>
+            )}
+
             {searchResults.map((loc, idx) => {
               const isItemHighlighted = highlightedLocationId === loc.id;
+              const distString = getDistanceFormatted(loc.coordinates);
               return (
                 <motion.button
                   key={loc.id}
@@ -209,10 +241,12 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
                   }}
                 >
                   <div className={cn(
-                    "p-2 rounded-lg mr-3 transition-colors",
+                    "p-2 rounded-lg mr-3 transition-colors shrink-0",
                     isItemHighlighted 
                       ? "bg-emerald-500 text-white shadow-sm" 
-                      : "bg-rsu-bg text-rsu-green dark:bg-slate-800 dark:text-emerald-400"
+                      : isNearbyActive
+                        ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400"
+                        : "bg-rsu-bg text-rsu-green dark:bg-slate-800 dark:text-emerald-400"
                   )}>
                     {getCategoryIcon(loc.type)}
                   </div>
@@ -222,8 +256,13 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
                       {loc.aliases.join(', ') || loc.type}
                     </div>
                   </div>
-                  <div className="text-[10px] font-mono uppercase text-rsu-muted tracking-wider ml-2 shrink-0">
-                    {loc.type}
+                  <div className="flex items-center gap-1.5 ml-2 shrink-0">
+                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                      {distString}
+                    </span>
+                    <div className="text-[10px] font-mono uppercase text-rsu-muted tracking-wider hidden sm:inline">
+                      {loc.type}
+                    </div>
                   </div>
                 </motion.button>
               );
@@ -235,22 +274,45 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
       {/* Category Filters */}
       {!isNavigating && (
         <div className="w-full max-w-md mt-2.5 flex gap-1.5 overflow-x-auto pb-1.5 no-scrollbar px-2.5 sm:px-4">
-          {(['all', 'faculty', 'college', 'department', 'admin', 'library', 'gate', 'facility'] as const).map(cat => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={cn(
-                "whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm border",
-                activeCategory === cat 
-                  ? "bg-rsu-navy text-white border-rsu-navy" 
-                  : "bg-rsu-card text-rsu-muted border-rsu-border hover:border-rsu-navy"
-              )}
-            >
-              {cat === 'department' ? 'Departments' : cat.charAt(0).toUpperCase() + cat.slice(1)}
-            </button>
-          ))}
+          {([
+            { id: 'all', label: 'All' },
+            { id: 'nearby', label: 'Nearby (500m)', isNearby: true },
+            { id: 'food', label: 'Food' },
+            { id: 'facility', label: 'Facilities' },
+            { id: 'faculty', label: 'Faculty' },
+            { id: 'college', label: 'College' },
+            { id: 'department', label: 'Departments' },
+            { id: 'admin', label: 'Admin' },
+            { id: 'library', label: 'Library' },
+            { id: 'gate', label: 'Gates' }
+          ] as const).map(cat => {
+            const isSelected = activeCategory === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => {
+                  setActiveCategory(cat.id);
+                  if (cat.id === 'nearby') {
+                    setIsSearchFocused(true);
+                  }
+                }}
+                className={cn(
+                  "whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm border flex items-center gap-1.5 cursor-pointer",
+                  isSelected
+                    ? "bg-rsu-navy text-white border-rsu-navy shadow-md ring-2 ring-rsu-orange/20" 
+                    : "bg-rsu-card text-rsu-muted border-rsu-border hover:border-rsu-navy hover:text-rsu-text"
+                )}
+              >
+                {cat.id === 'nearby' && (
+                  <Compass size={13} className={cn(isSelected ? "text-rsu-orange" : "text-rsu-muted")} />
+                )}
+                {cat.label}
+              </button>
+            );
+          })}
         </div>
       )}
     </div>
   );
 };
+
