@@ -25,6 +25,11 @@ function MapController({ center, zoom, onMapMove }: { center: [number, number], 
   const map = useMap();
   const lastTargetRef = React.useRef<{ center: [number, number]; zoom: number } | null>(null);
   const isUserInteractingRef = React.useRef<boolean>(false);
+  const onMapMoveRef = React.useRef(onMapMove);
+  
+  React.useEffect(() => {
+    onMapMoveRef.current = onMapMove;
+  }, [onMapMove]);
   
   // Track physical user touches/clicks/drags to distinguish user map pans from programmatic zoom/setViews
   React.useEffect(() => {
@@ -79,14 +84,14 @@ function MapController({ center, zoom, onMapMove }: { center: [number, number], 
           return;
         }
       }
-      onMapMove([newCenter.lat, newCenter.lng], newZoom);
+      onMapMoveRef.current([newCenter.lat, newCenter.lng], newZoom);
     };
 
     map.on('moveend', onMove);
     return () => {
       map.off('moveend', onMove);
     };
-  }, [map, onMapMove]);
+  }, [map]);
 
   // Handle external view changes (selecting a location, etc)
   React.useEffect(() => {
@@ -111,6 +116,7 @@ function MapController({ center, zoom, onMapMove }: { center: [number, number], 
     }
 
     // Otherwise, perform the programmatic movement
+    isUserInteractingRef.current = false;
     lastTargetRef.current = { center, zoom };
     map.setView(center, zoom, { animate: true, duration: 1 });
   }, [center[0], center[1], zoom, map]);
@@ -436,6 +442,7 @@ export const CampusMap = React.memo<CampusMapProps & {
             key={loc.id} 
             position={loc.coordinates}
             icon={createCustomIcon(loc.type, isSelected, isHighlighted)}
+            opacity={isSelected || isHighlighted ? 1 : 0}
             eventHandlers={{
               click: () => {
                 onLocationSelect(loc);

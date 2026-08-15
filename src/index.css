@@ -74,9 +74,19 @@ html, body, #root {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  opacity: 1 !important;
   pointer-events: auto !important;
   will-change: transform, opacity;
+}
+
+.custom-marker.default-location-dot,
+.leaflet-marker-icon.default-location-dot {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+.custom-marker.active-highlight,
+.custom-marker.search-highlight {
+  opacity: 1 !important;
 }
 
 .marker-inner-enter {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Fuse from 'fuse.js';
 import { motion, AnimatePresence } from 'motion/react';
 import { GoogleGenAI, Modality } from "@google/genai";
@@ -540,7 +540,7 @@ export default function App() {
       });
   };
 
-  const [lastRouteCoords, setLastRouteCoords] = useState<{start: [number, number], end: [number, number]} | null>(null);
+  const lastRouteCoordsRef = useRef<{start: [number, number], end: [number, number]} | null>(null);
 
   useEffect(() => {
     const updateRoutes = async () => {
@@ -549,9 +549,9 @@ export default function App() {
         const end = selectedLocation.coordinates;
 
         // Check if we already have a route for these approximate coordinates (within 5m)
-        if (lastRouteCoords) {
-          const dStart = getDistanceInMeters(lastRouteCoords.start, start);
-          const dEnd = getDistanceInMeters(lastRouteCoords.end, end);
+        if (lastRouteCoordsRef.current) {
+          const dStart = getDistanceInMeters(lastRouteCoordsRef.current.start, start);
+          const dEnd = getDistanceInMeters(lastRouteCoordsRef.current.end, end);
           if (dStart < 5 && dEnd < 1) return;
         }
         
@@ -565,10 +565,10 @@ export default function App() {
           endName
         );
         setPlannedRoutes(routes);
-        setLastRouteCoords({ start, end });
+        lastRouteCoordsRef.current = { start, end };
       } else {
-        setPlannedRoutes([]);
-        setLastRouteCoords(null);
+        setPlannedRoutes(prev => prev.length === 0 ? prev : []);
+        lastRouteCoordsRef.current = null;
       }
     };
     updateRoutes();
@@ -580,8 +580,8 @@ export default function App() {
       setNavigationPath(activeRoute.path);
       setManeuvers(activeRoute.maneuvers);
     } else if (!isNavigating) {
-      setNavigationPath(null);
-      setManeuvers([]);
+      setNavigationPath(prev => prev === null ? null : null);
+      setManeuvers(prev => prev.length === 0 ? prev : []);
     }
   }, [selectedRouteId, plannedRoutes, isNavigating]);
 
@@ -641,8 +641,8 @@ export default function App() {
       if (dist < 0.1 && Math.abs(prev.zoom - zoom) < 0.01) return prev;
       return { center, zoom };
     });
-    if (isFollowingUser) setIsFollowingUser(false);
-  }, [isFollowingUser]);
+    setIsFollowingUser(prev => prev ? false : false);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('saved_locations', JSON.stringify(savedLocationIds));

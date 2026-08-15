@@ -86,11 +86,11 @@ export const createCustomIcon = (type: string, isActive: boolean, isHighlighted:
     const dotColor = 'bg-rsu-navy dark:bg-emerald-400';
     
     icon = L.divIcon({
-      className: cn('custom-marker pointer-events-auto cursor-pointer'),
+      className: cn('custom-marker default-location-dot pointer-events-auto cursor-pointer opacity-0'),
       html: `
-        <div class="relative flex items-center justify-center w-10 h-10 marker-inner-enter">
-          <div class="z-10 ${bgColor} w-6 h-6 rounded-full shadow-md border-2 border-white dark:border-slate-800/80 flex items-center justify-center transition-all duration-300 scale-100 hover:scale-125 hover:shadow-lg">
-            <div class="w-2 h-2 rounded-full ${dotColor}"></div>
+        <div class="relative flex items-center justify-center w-10 h-10 opacity-0" style="opacity: 0 !important; visibility: hidden !important;">
+          <div class="z-10 ${bgColor} w-6 h-6 rounded-full shadow-md border-2 border-white dark:border-slate-800/80 flex items-center justify-center opacity-0" style="opacity: 0 !important;">
+            <div class="w-2 h-2 rounded-full ${dotColor} opacity-0" style="opacity: 0 !important;"></div>
           </div>
         </div>
       `,

@@ -8,46 +8,77 @@ import { handleCampusChat, parseCampusIntent } from "./src/services/server/chatS
 import cron from "node-cron";
 import admin from "firebase-admin";
 
-// Initialize Firebase Admin
-if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-  try {
-    let serviceAccount;
-    const config = process.env.FIREBASE_SERVICE_ACCOUNT.trim();
-    
-    if (config.startsWith('{')) {
-      serviceAccount = JSON.parse(config);
-      if (serviceAccount.private_key) {
-        let pkey = serviceAccount.private_key.trim();
-        // Remove surrounding quotes if they exist in the JSON parsed string (common raw copy-paste issue)
-        if (pkey.startsWith('"') && pkey.endsWith('"')) {
-          pkey = pkey.substring(1, pkey.length - 1).trim();
+// Initialize Firebase Admin with resilient parsing and ADC fallback
+function initFirebaseAdmin() {
+  if (admin.apps.length > 0) return;
+
+  const rawConfig = process.env.FIREBASE_SERVICE_ACCOUNT?.trim();
+  
+  if (rawConfig) {
+    try {
+      let jsonStr = rawConfig;
+      // If it looks base64-encoded, decode it
+      if (!jsonStr.startsWith('{') && !jsonStr.startsWith('"')) {
+        try {
+          const decoded = Buffer.from(jsonStr, 'base64').toString('utf-8');
+          if (decoded.trim().startsWith('{')) {
+            jsonStr = decoded.trim();
+          }
+        } catch {
+          // ignore base64 decode failure
         }
-        if (pkey.startsWith("'") && pkey.endsWith("'")) {
-          pkey = pkey.substring(1, pkey.length - 1).trim();
+      }
+
+      if (jsonStr.startsWith('{')) {
+        const serviceAccount = JSON.parse(jsonStr);
+        if (serviceAccount.private_key) {
+          let pkey = String(serviceAccount.private_key).trim();
+          
+          // Strip wrapping quotes
+          if ((pkey.startsWith('"') && pkey.endsWith('"')) || (pkey.startsWith("'") && pkey.endsWith("'"))) {
+            pkey = pkey.slice(1, -1).trim();
+          }
+          
+          // Normalize escaped newlines and carriage returns
+          pkey = pkey.replace(/\\\\n/g, '\n').replace(/\\n/g, '\n').replace(/\\r/g, '\r');
+
+          // If the key is missing PEM headers, wrap it properly
+          if (!pkey.includes('-----BEGIN PRIVATE KEY-----') && !pkey.includes('-----BEGIN RSA PRIVATE KEY-----')) {
+            pkey = `-----BEGIN PRIVATE KEY-----\n${pkey}\n-----END PRIVATE KEY-----\n`;
+          }
+
+          serviceAccount.private_key = pkey;
         }
-        // Normalize any double or single-escaped newlines to actual newlines
-        pkey = pkey.replace(/\\\\n/g, '\n');
-        pkey = pkey.replace(/\\n/g, '\n');
-        pkey = pkey.replace(/\\r/g, '\r');
-        
-        serviceAccount.private_key = pkey;
-        console.log(`Firebase Admin: Private key length: ${pkey.length}, starts with header: ${pkey.startsWith('-----BEGIN PRIVATE KEY-----')}, newlines: ${(pkey.match(/\n/g) || []).length}`);
+
+        try {
+          admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount),
+            projectId: serviceAccount.project_id || "rsu-campus-map",
+          });
+          console.log("Firebase Admin initialized with service account.");
+          return;
+        } catch (certError: any) {
+          console.warn("Firebase Admin cert init failed, falling back to application defaults:", certError.message);
+        }
       }
-      if (!admin.apps.length) {
-        admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount)
-        });
-        console.log("Firebase Admin initialized successfully.");
-      } else {
-        console.log("Firebase Admin already initialized.");
-      }
-    } else {
-      console.warn("FIREBASE_SERVICE_ACCOUNT is set but does not appear to be a JSON string");
+    } catch (parseError: any) {
+      console.warn("Could not parse FIREBASE_SERVICE_ACCOUNT JSON, falling back:", parseError.message);
     }
-  } catch (error: any) {
-    console.error("Firebase Admin init error:", error.message);
+  }
+
+  // Graceful fallback to Application Default Credentials or default project config
+  try {
+    const projectId = process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD_PROJECT || "rsu-campus-map";
+    admin.initializeApp({
+      projectId,
+    });
+    console.log(`Firebase Admin initialized with default configuration (${projectId}).`);
+  } catch (fallbackError: any) {
+    console.warn("Firebase Admin default init deferred:", fallbackError.message);
   }
 }
+
+initFirebaseAdmin();
 
 const upload = multer({ storage: multer.memoryStorage() });
 
