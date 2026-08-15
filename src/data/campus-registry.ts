@@ -569,7 +569,7 @@ export const CAMPUS_REGISTRY: Record<string, CampusEntry> = {
     "address": "Law Axis",
     "type": "faculty",
     "description": "Academic center for legal studies.",
-    "landmark": "Near Filing Station"
+    "landmark": "Near School Library"
   },
   "basketball_court": {
     "name": "basketball court",
