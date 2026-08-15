@@ -446,7 +446,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ initialTab = 'terms', onBa
     } else {
       setMatchIndex(-1);
     }
-  }, [matches]);
+  }, [matches.length, activeTab]);
 
   // Handle Next Index matching & auto scrolls to target sections
   const scrollToMatch = (index: number) => {

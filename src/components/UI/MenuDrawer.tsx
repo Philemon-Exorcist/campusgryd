@@ -245,7 +245,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
               </div>
             </div>
 
-            <div className="p-6 border-t border-rsu-border bg-rsu-bg/50">
+            <div className="p-6 border-t border-rsu-border bg-rsu-bg">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-8 h-8 bg-rsu-navy rounded-lg flex items-center justify-center">
                   <GraduationCap className="text-white" size={18} />

@@ -62,7 +62,7 @@ export const CompassControl: React.FC<CompassControlProps> = ({
   const handleDragMoveRef = useRef(handleDragMove);
   useEffect(() => {
     handleDragMoveRef.current = handleDragMove;
-  });
+  }, [handleDragMove]);
 
   // Bind move & up event handlers globally during drag
   useEffect(() => {

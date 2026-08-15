@@ -3,7 +3,7 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* 
+/* Light Mode Root Tokens */
 :root {
   --rsu-navy: #0F172A;
   --rsu-navy-light: #1E293B;
@@ -18,24 +18,29 @@
   --rsu-red: #DC2626;
 }
 
+/* Dark Mode Overrides */
 .dark {
-  --rsu-navy: #1E3A8A;
-  --rsu-navy-light: #1E293B;
-  --rsu-green: #22C55E;
-  --rsu-white: #FFFFFF;
-  --rsu-bg: #090D16;
-  --rsu-text: #F3F4F6;
-  --rsu-card: #111827;
-  --rsu-border: #1F2937;
-  --rsu-muted: #9CA3AF;
-  --rsu-orange: #3B82F6;
-  --rsu-red: #DC2626;
+  --rsu-bg: #0F172A;
+  --rsu-text: #F8FAFC;
+  --rsu-card: #1E293B;
+  --rsu-border: #334155;
+  --rsu-muted: #94A3B8;
 }
-*/
 
 @theme {
   --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Syne", sans-serif;
+  --color-rsu-navy: var(--rsu-navy);
+  --color-rsu-navy-light: var(--rsu-navy-light);
+  --color-rsu-green: var(--rsu-green);
+  --color-rsu-white: var(--rsu-white);
+  --color-rsu-bg: var(--rsu-bg);
+  --color-rsu-text: var(--rsu-text);
+  --color-rsu-card: var(--rsu-card);
+  --color-rsu-border: var(--rsu-border);
+  --color-rsu-muted: var(--rsu-muted);
+  --color-rsu-orange: var(--rsu-orange);
+  --color-rsu-red: var(--rsu-red);
 }
 
 html, body, #root {
