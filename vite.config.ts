@@ -66,11 +66,34 @@ export default defineConfig(({mode}) => {
     },
     build: {
       chunkSizeWarningLimit: 2000,
+      cssCodeSplit: true,
+      sourcemap: false,
       rollupOptions: {
         input: {
           main: path.resolve(__dirname, 'index.html'),
           privacy: path.resolve(__dirname, 'privacy.html'),
           terms: path.resolve(__dirname, 'terms.html'),
+        },
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('leaflet') || id.includes('react-leaflet')) {
+                return 'vendor-leaflet';
+              }
+              if (id.includes('firebase')) {
+                return 'vendor-firebase';
+              }
+              if (id.includes('motion')) {
+                return 'vendor-motion';
+              }
+              if (id.includes('lucide-react')) {
+                return 'vendor-lucide';
+              }
+              if (id.includes('fuse.js') || id.includes('canvas-confetti')) {
+                return 'vendor-utils';
+              }
+            }
+          }
         }
       }
     },

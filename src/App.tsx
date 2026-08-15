@@ -23,18 +23,20 @@ import { InfoPanel } from './components/Navigation/InfoPanel';
 import { Header } from './components/UI/Header';
 import { MenuDrawer } from './components/UI/MenuDrawer';
 import { FloatingActions } from './components/UI/FloatingActions';
-import { EventsPanel } from './components/UI/EventsPanel';
-import { TimetablePanel } from './components/UI/TimetablePanel';
 import { LegalPage } from './components/UI/LegalPage';
 import { CompassControl } from './components/UI/CompassControl';
 import { CustomCampusRouter, RoutingMode } from './services/router';
 import { fetchOSRMRoute, OSRMRoute, OSRMStep } from './services/osrm';
 import { GeminiChatService } from './services/geminiService';
-import { ChatBot } from './components/Chat/ChatBot';
 import { collection, query, where, onSnapshot, orderBy, limit, getDocs, doc, setDoc } from 'firebase/firestore';
 import { db, auth, googleProvider, setCachedAccessToken, getCachedAccessToken } from './lib/firebase';
 import { onAuthStateChanged, signInWithPopup, signInWithRedirect, signOut, User, getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
 import { FeatureCollection } from 'geojson';
+
+// Lazy-loaded secondary components to speed up initial bundle load
+const EventsPanel = React.lazy(() => import('./components/UI/EventsPanel').then(m => ({ default: m.EventsPanel })));
+const TimetablePanel = React.lazy(() => import('./components/UI/TimetablePanel').then(m => ({ default: m.TimetablePanel })));
+const ChatBot = React.lazy(() => import('./components/Chat/ChatBot').then(m => ({ default: m.ChatBot })));
 
 enum OperationType {
   CREATE = 'create',
@@ -63,8 +65,16 @@ interface FirestoreErrorInfo {
 }
 
 function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null): void {
+  const errMsg = error instanceof Error ? error.message : String(error);
+  const errCode = (error as any)?.code;
+
+  if (errCode === 'unavailable' || errMsg.includes('unavailable') || errMsg.includes('Could not reach Cloud Firestore backend')) {
+    console.warn(`Firestore operating in offline/cached mode during ${operationType} on ${path}.`);
+    return;
+  }
+
   const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
+    error: errMsg,
     authInfo: {
       userId: auth.currentUser?.uid,
       email: auth.currentUser?.email,
@@ -1400,20 +1410,24 @@ export default function App() {
 
       <AnimatePresence>
         {isEventsPanelOpen && (
-          <EventsPanel 
-            onClose={() => setIsEventsPanelOpen(false)}
-            onNavigateTo={handleEventNavigation}
-          />
+          <React.Suspense fallback={null}>
+            <EventsPanel 
+              onClose={() => setIsEventsPanelOpen(false)}
+              onNavigateTo={handleEventNavigation}
+            />
+          </React.Suspense>
         )}
       </AnimatePresence>
 
       <AnimatePresence>
         {isTimetableOpen && (
-          <TimetablePanel 
-            onClose={() => setIsTimetableOpen(false)}
-            onNavigateTo={handleEventNavigation}
-            currentUser={currentUser}
-          />
+          <React.Suspense fallback={null}>
+            <TimetablePanel 
+              onClose={() => setIsTimetableOpen(false)}
+              onNavigateTo={handleEventNavigation}
+              currentUser={currentUser}
+            />
+          </React.Suspense>
         )}
       </AnimatePresence>
 
@@ -1458,19 +1472,21 @@ export default function App() {
         onNavigateHome={() => navigate('/')}
       />
 
-      <ChatBot 
-        onSendMessage={handleChatMessage}
-        onLocationFocus={(id) => {
-          const loc = allLocations.find(l => l.id === id);
-          if (loc) handleLocationSelect(loc);
-        }}
-        isNavigating={isNavigating}
-        activeManeuvers={maneuvers}
-        onRecalculate={handleRecalculate}
-        isOpen={isChatOpen}
-        onOpenChange={setIsChatOpen}
-        showFloatingButton={false}
-      />
+      <React.Suspense fallback={null}>
+        <ChatBot 
+          onSendMessage={handleChatMessage}
+          onLocationFocus={(id) => {
+            const loc = allLocations.find(l => l.id === id);
+            if (loc) handleLocationSelect(loc);
+          }}
+          isNavigating={isNavigating}
+          activeManeuvers={maneuvers}
+          onRecalculate={handleRecalculate}
+          isOpen={isChatOpen}
+          onOpenChange={setIsChatOpen}
+          showFloatingButton={false}
+        />
+      </React.Suspense>
 
       {/* Add Custom Location Dialog */}
       <AnimatePresence>

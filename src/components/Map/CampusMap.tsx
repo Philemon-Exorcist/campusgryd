@@ -316,11 +316,52 @@ function MapRotationController({ rotation, setRotation, isSatelliteView }: { rot
   return null;
 }
 
-export const CampusMap: React.FC<CampusMapProps & { 
+const userMarkerIcon = L.divIcon({
+  className: 'user-marker-google',
+  html: `<div class="relative w-12 h-12 flex items-center justify-center">
+          <div class="absolute w-10 h-10 bg-blue-500/20 rounded-full animate-ping opacity-70"></div>
+          
+          <div class="relative w-8 h-8 flex items-center justify-center">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="absolute transform -rotate-[15deg]">
+              <path d="M16 2L24 28L16 22L8 28L16 2Z" fill="#4285F4" fill-opacity="0.3" stroke="#4285F4" stroke-width="0.5" />
+            </svg>
+            
+            <div class="z-10 w-4 h-4 bg-white rounded-full flex items-center justify-center shadow-md">
+              <div class="w-2.5 h-2.5 bg-[#4285F4] rounded-full"></div>
+            </div>
+          </div>
+        </div>`,
+  iconSize: [48, 48],
+  iconAnchor: [24, 24]
+});
+
+const navStartIcon = L.divIcon({
+  className: 'custom-div-icon',
+  html: `<div class="w-10 h-10 flex items-center justify-center">
+          <div class="w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-md">
+            <div class="w-4 h-4 bg-[#4285F4] rounded-full"></div>
+          </div>
+        </div>`,
+  iconSize: [40, 40],
+  iconAnchor: [20, 20]
+});
+
+const navEndIcon = L.divIcon({
+  className: 'custom-div-icon',
+  html: `<div class="relative w-10 h-10 flex items-center justify-center drop-shadow-xl">
+          <svg viewBox="0 0 24 24" class="w-12 h-12" fill="#EA4335" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" stroke="white" stroke-width="0.5"/>
+          </svg>
+        </div>`,
+  iconSize: [48, 48],
+  iconAnchor: [24, 48]
+});
+
+export const CampusMap = React.memo<CampusMapProps & { 
   onMapMove: (center: [number, number], zoom: number) => void;
   mapRotation: number;
   setMapRotation: (r: number) => void;
-}> = ({
+}>(({
   mapView,
   isSatelliteView,
   filteredLocations,
@@ -338,6 +379,12 @@ export const CampusMap: React.FC<CampusMapProps & {
   mapRotation,
   setMapRotation
 }) => {
+  // Pre-calculate and memoize GeoJSON geometry layers
+  const polygonFeatures = React.useMemo(() => {
+    if (!mapFeatures?.features) return [];
+    return mapFeatures.features.filter((f: any) => f.geometry.type.includes('Polygon'));
+  }, [mapFeatures]);
+
   return (
     <MapContainer 
       center={RSU_CENTER} 
@@ -423,29 +470,12 @@ export const CampusMap: React.FC<CampusMapProps & {
       {userLocation && (
         <Marker 
           position={userLocation}
-          icon={L.divIcon({
-            className: 'user-marker-google',
-            html: `<div class="relative w-12 h-12 flex items-center justify-center">
-                    <div class="absolute w-10 h-10 bg-blue-500/20 rounded-full animate-ping opacity-70"></div>
-                    
-                    <div class="relative w-8 h-8 flex items-center justify-center">
-                      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="absolute transform -rotate-[15deg]">
-                        <path d="M16 2L24 28L16 22L8 28L16 2Z" fill="#4285F4" fill-opacity="0.3" stroke="#4285F4" stroke-width="0.5" />
-                      </svg>
-                      
-                      <div class="z-10 w-4 h-4 bg-white rounded-full flex items-center justify-center shadow-md">
-                        <div class="w-2.5 h-2.5 bg-[#4285F4] rounded-full"></div>
-                      </div>
-                    </div>
-                  </div>`,
-            iconSize: [48, 48],
-            iconAnchor: [24, 24]
-          })}
+          icon={userMarkerIcon}
         />
       )}
 
       {/* Base Layer for Polygons */}
-      {mapFeatures?.features?.filter((f: any) => f.geometry.type.includes('Polygon')).map((feature: any, idx: number) => {
+      {polygonFeatures.map((feature: any, idx: number) => {
         const strokeColor = feature.properties.stroke || (isSatelliteView ? '#FFFFFF' : '#000000');
         
         if (feature.geometry.type === 'Polygon') {
@@ -509,7 +539,7 @@ export const CampusMap: React.FC<CampusMapProps & {
           const positions = feature.geometry.coordinates.map((coord: any) => [coord[1], coord[0]]);
           return (
             <React.Fragment key={`feature-line-group-${idx}`}>
-              {/* Casing / Glow for better visibility - mimicking the bold look from the image */}
+              {/* Casing / Glow for better visibility */}
               <Polyline 
                 positions={positions}
                 color={isRoad ? (isSatelliteView ? "#000" : "#FFF") : "transparent"}
@@ -564,31 +594,12 @@ export const CampusMap: React.FC<CampusMapProps & {
             lineJoin="round"
           />
           
-          <Marker position={navigationPath[0]} icon={L.divIcon({
-            className: 'custom-div-icon',
-            html: `<div class="w-10 h-10 flex items-center justify-center">
-                    <div class="w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-md">
-                      <div class="w-4 h-4 bg-[#4285F4] rounded-full"></div>
-                    </div>
-                  </div>`,
-            iconSize: [40, 40],
-            iconAnchor: [20, 20]
-          })} />
-
-          <Marker position={navigationPath[navigationPath.length - 1]} icon={L.divIcon({
-            className: 'custom-div-icon',
-            html: `<div class="relative w-10 h-10 flex items-center justify-center drop-shadow-xl">
-                    <svg viewBox="0 0 24 24" class="w-12 h-12" fill="#EA4335" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" stroke="white" stroke-width="0.5"/>
-                    </svg>
-                  </div>`,
-            iconSize: [48, 48],
-            iconAnchor: [24, 48]
-          })} />
+          <Marker position={navigationPath[0]} icon={navStartIcon} />
+          <Marker position={navigationPath[navigationPath.length - 1]} icon={navEndIcon} />
         </>
       )}
 
       <ZoomControl position="bottomright" />
     </MapContainer>
   );
-};
+});

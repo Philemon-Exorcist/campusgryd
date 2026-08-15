@@ -29,9 +29,18 @@ export const getCategoryIcon = (type: string) => {
   }
 };
 
+// Cache DivIcons to prevent recreating identical DOM/Leaflet icon objects on every render
+const iconCache = new Map<string, L.DivIcon>();
+
 export const createCustomIcon = (type: string, isActive: boolean, isHighlighted: boolean = false) => {
+  const key = `${type}_${isActive}_${isHighlighted}`;
+  const cached = iconCache.get(key);
+  if (cached) return cached;
+
+  let icon: L.DivIcon;
+
   if (isActive) {
-    return L.divIcon({
+    icon = L.divIcon({
       className: 'custom-marker active-highlight',
       html: `
         <div class="relative flex items-center justify-center w-14 h-14 marker-inner-active">
@@ -55,10 +64,8 @@ export const createCustomIcon = (type: string, isActive: boolean, isHighlighted:
       iconSize: [56, 56],
       iconAnchor: [28, 48],
     });
-  }
-
-  if (isHighlighted) {
-    return L.divIcon({
+  } else if (isHighlighted) {
+    icon = L.divIcon({
       className: 'custom-marker search-highlight',
       html: `
         <div class="relative flex items-center justify-center w-12 h-12 marker-inner-highlight">
@@ -74,21 +81,24 @@ export const createCustomIcon = (type: string, isActive: boolean, isHighlighted:
       iconSize: [48, 48],
       iconAnchor: [24, 24],
     });
+  } else {
+    const bgColor = 'bg-white dark:bg-slate-900';
+    const dotColor = 'bg-rsu-navy dark:bg-emerald-400';
+    
+    icon = L.divIcon({
+      className: cn('custom-marker pointer-events-auto cursor-pointer'),
+      html: `
+        <div class="relative flex items-center justify-center w-10 h-10 marker-inner-enter">
+          <div class="z-10 ${bgColor} w-6 h-6 rounded-full shadow-md border-2 border-white dark:border-slate-800/80 flex items-center justify-center transition-all duration-300 scale-100 hover:scale-125 hover:shadow-lg">
+            <div class="w-2 h-2 rounded-full ${dotColor}"></div>
+          </div>
+        </div>
+      `,
+      iconSize: [40, 40],
+      iconAnchor: [20, 20],
+    });
   }
 
-  const bgColor = 'bg-white dark:bg-slate-900';
-  const dotColor = 'bg-rsu-navy dark:bg-emerald-400';
-  
-  return L.divIcon({
-    className: cn('custom-marker pointer-events-auto cursor-pointer'),
-    html: `
-      <div class="relative flex items-center justify-center w-10 h-10 marker-inner-enter">
-        <div class="z-10 ${bgColor} w-6 h-6 rounded-full shadow-md border-2 border-white dark:border-slate-800/80 flex items-center justify-center transition-all duration-300 scale-100 hover:scale-125 hover:shadow-lg">
-          <div class="w-2 h-2 rounded-full ${dotColor}"></div>
-        </div>
-      </div>
-    `,
-    iconSize: [40, 40],
-    iconAnchor: [20, 20],
-  });
+  iconCache.set(key, icon);
+  return icon;
 };
