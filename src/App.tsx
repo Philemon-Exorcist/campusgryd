@@ -1456,6 +1456,8 @@ export default function App() {
         isPanelExpanded={isPanelExpanded}
         isTimetableOpen={isTimetableOpen}
         isEventsPanelOpen={isEventsPanelOpen}
+        isChatOpen={isChatOpen}
+        onToggleChat={() => setIsChatOpen(!isChatOpen)}
       />
 
       <AnimatePresence>

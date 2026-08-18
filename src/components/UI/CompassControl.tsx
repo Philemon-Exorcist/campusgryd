@@ -109,8 +109,8 @@ export const CompassControl: React.FC<CompassControlProps> = ({
         "absolute flex flex-col items-center gap-2 z-30 select-none transition-all duration-350",
         // Position changes based on whether map details are showing
         hasActiveSelection 
-          ? "left-4 bottom-[200px] md:left-[472px] md:bottom-6" 
-          : "left-4 bottom-24 md:bottom-6",
+          ? "left-3.5 bottom-[195px] md:left-6 md:bottom-6" 
+          : "left-3.5 bottom-20 md:left-6 md:bottom-6",
         // Hide on mobile if details panel is fully expanded to prevent clutter
         isPanelExpanded ? "opacity-0 pointer-events-none scale-90 md:opacity-100 md:pointer-events-auto md:scale-100" : "opacity-100 scale-100"
       )}

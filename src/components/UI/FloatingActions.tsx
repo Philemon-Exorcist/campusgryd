@@ -1,5 +1,15 @@
 import React from 'react';
-import { Layers, LocateFixed, Calendar, BookOpen, MapPin } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { 
+  Layers, 
+  LocateFixed, 
+  BookOpen, 
+  Calendar, 
+  MapPin, 
+  Sparkles,
+  Compass,
+  Navigation
+} from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 interface FloatingActionsProps {
@@ -17,6 +27,8 @@ interface FloatingActionsProps {
   isPanelExpanded?: boolean;
   isTimetableOpen?: boolean;
   isEventsPanelOpen?: boolean;
+  isChatOpen?: boolean;
+  onToggleChat?: () => void;
 }
 
 export const FloatingActions: React.FC<FloatingActionsProps> = ({
@@ -33,81 +45,167 @@ export const FloatingActions: React.FC<FloatingActionsProps> = ({
   hasActiveSelection = false,
   isPanelExpanded = false,
   isTimetableOpen = false,
-  isEventsPanelOpen = false
+  isEventsPanelOpen = false,
+  isChatOpen = false,
+  onToggleChat
 }) => {
   return (
-    <div 
+    <motion.nav
+      initial={{ y: 40, opacity: 0, scale: 0.95 }}
+      animate={{ 
+        y: isPanelExpanded ? 60 : 0, 
+        opacity: isPanelExpanded ? 0 : 1, 
+        scale: isPanelExpanded ? 0.9 : 1,
+        pointerEvents: isPanelExpanded ? 'none' : 'auto'
+      }}
+      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
       className={cn(
-        "absolute flex flex-col gap-3 z-30 transition-all duration-350 right-4",
-        // On mobile, push up if details card is open so it rests above the summary bar.
-        // On desktop, keep at bottom-6.
+        "fixed z-30 left-1/2 -translate-x-1/2 transition-all duration-300",
+        // Responsive positioning based on bottom sheet state
         hasActiveSelection 
-          ? "bottom-[200px] md:bottom-6" 
-          : "bottom-24 md:bottom-6",
-        // Shifting Left on desktop if Timetable or Events sidebar is wide-open to avoid covering them!
-        (isTimetableOpen || isEventsPanelOpen) ? "md:right-[412px]" : "md:right-4",
-        // Fade out on mobile if the details card is fully expanded to prevent covering details
-        isPanelExpanded ? "opacity-0 pointer-events-none scale-90 md:opacity-100 md:pointer-events-auto md:scale-100" : "opacity-100 scale-100"
+          ? "bottom-[195px] md:bottom-6" 
+          : "bottom-4 sm:bottom-6",
+        // Shift slightly on desktop if sidebar panels are open
+        (isTimetableOpen || isEventsPanelOpen) && "md:left-[calc(50%-200px)]"
       )}
+      aria-label="Campus Navigation Bar"
     >
-      <button
-        onClick={toggleTimetable}
-        className="p-3 bg-rsu-orange text-white border-2 border-white rounded-full shadow-lg hover:bg-rsu-navy transition-all flex items-center justify-center scale-110"
-        title="Smart Timetable Sync"
-      >
-        <BookOpen size={28} />
-      </button>
-
-      {isSignedIn && (
+      <div className="flex items-center gap-1 sm:gap-2 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-2xl sm:rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border border-slate-200/90 dark:border-slate-800/80 shadow-[0_16px_40px_-10px_rgba(0,0,0,0.28)] ring-1 ring-black/5 dark:ring-white/10">
+        
+        {/* GPS Locate Me Button */}
         <button
-          onClick={onAddLocationClick}
-          disabled={isLocating}
+          onClick={handleLocateMe}
           className={cn(
-            "p-3 rounded-full shadow-lg border transition-all duration-300 flex items-center justify-center scale-110",
-            isLocating 
-              ? "bg-slate-300 text-slate-500 animate-pulse border-slate-300"
-              : "bg-[#0ea5e9] text-white border-[#0ea5e9] hover:bg-rsu-orange hover:border-rsu-orange",
-            "dark:bg-emerald-600 dark:text-white dark:border-emerald-600 dark:hover:bg-rsu-orange dark:hover:border-rsu-orange"
+            "relative group flex flex-col items-center justify-center p-2.5 sm:px-3 sm:py-2 rounded-xl sm:rounded-full transition-all duration-200 cursor-pointer min-w-[44px] min-h-[44px]",
+            isFollowingUser
+              ? "bg-rsu-navy text-white shadow-md ring-2 ring-rsu-navy/20 dark:bg-emerald-600 dark:ring-emerald-500/30"
+              : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
           )}
-          title="Add Custom Location (Checks GPS)"
-          id="add-custom-location-btn"
+          title={isFollowingUser ? "Live GPS Tracking Active" : "Center on My Location"}
+          aria-label="Locate me"
         >
-          <MapPin size={24} className={cn(isLocating && "animate-spin")} />
+          {isFollowingUser && (
+            <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
+          )}
+          <LocateFixed size={20} className={cn(isFollowingUser && "animate-pulse")} />
+          <span className="text-[9px] font-bold tracking-tight hidden md:inline-block mt-0.5">
+            {isFollowingUser ? "Live GPS" : "Locate"}
+          </span>
         </button>
-      )}
 
-      <button
-        onClick={() => {
-          setIsSatelliteView(!isSatelliteView);
-          setNotification({ 
-            message: `Switched to ${!isSatelliteView ? 'Satellite' : 'Map'} View`, 
-            type: 'info' 
-          });
-        }}
-        className={cn(
-          "p-3 rounded-full shadow-lg border transition-all duration-300 flex items-center justify-center",
-          isSatelliteView 
-            ? "bg-[#4285F4] text-white border-[#4285F4]" 
-            : "bg-white text-black border-rsu-border hover:bg-slate-100",
-          "dark:bg-white dark:text-rsu-green dark:border-white dark:hover:bg-rsu-orange dark:hover:text-white dark:hover:border-rsu-orange"
-        )}
-        title={isSatelliteView ? "Switch to Map View" : "Switch to Satellite View"}
-      >
-        <Layers size={24} className={cn(isSatelliteView && "animate-pulse")} />
-      </button>
+        {/* Map / Satellite Layer Switcher */}
+        <button
+          onClick={() => {
+            const nextMode = !isSatelliteView;
+            setIsSatelliteView(nextMode);
+            setNotification({ 
+              message: `Switched to ${nextMode ? 'Satellite' : 'Map'} View`, 
+              type: 'info' 
+            });
+          }}
+          className={cn(
+            "flex flex-col items-center justify-center p-2.5 sm:px-3 sm:py-2 rounded-xl sm:rounded-full transition-all duration-200 cursor-pointer min-w-[44px] min-h-[44px]",
+            isSatelliteView
+              ? "bg-[#4285F4] text-white shadow-md"
+              : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
+          )}
+          title={isSatelliteView ? "Switch to 2D Map View" : "Switch to Satellite Imagery"}
+          aria-label="Toggle map layer"
+        >
+          <Layers size={20} className={cn(isSatelliteView && "animate-pulse")} />
+          <span className="text-[9px] font-bold tracking-tight hidden md:inline-block mt-0.5">
+            {isSatelliteView ? "Satellite" : "Layers"}
+          </span>
+        </button>
 
-      <button 
-        onClick={handleLocateMe}
-        className={cn(
-          "p-3 rounded-full shadow-lg transition-all border",
-          isFollowingUser 
-            ? "bg-rsu-navy text-white border-rsu-navy ring-4 ring-rsu-navy/10" 
-            : "bg-rsu-card text-rsu-green border-rsu-border hover:bg-rsu-bg"
+        {/* Subtle Divider */}
+        <div className="w-[1px] h-6 bg-slate-200 dark:bg-slate-800 mx-0.5 sm:mx-1" />
+
+        {/* Timetable Sync Hub */}
+        <button
+          onClick={toggleTimetable}
+          className={cn(
+            "flex flex-col items-center justify-center p-2.5 sm:px-3 sm:py-2 rounded-xl sm:rounded-full transition-all duration-200 cursor-pointer min-w-[44px] min-h-[44px]",
+            isTimetableOpen
+              ? "bg-rsu-orange text-white shadow-md"
+              : "text-slate-600 dark:text-slate-300 hover:bg-orange-50 dark:hover:bg-orange-950/30 hover:text-rsu-orange"
+          )}
+          title="Smart Academic Timetable"
+          aria-label="Timetable hub"
+        >
+          <BookOpen size={20} />
+          <span className="text-[9px] font-bold tracking-tight hidden md:inline-block mt-0.5">
+            Timetable
+          </span>
+        </button>
+
+        {/* Campus Events */}
+        <button
+          onClick={toggleEvents}
+          className={cn(
+            "flex flex-col items-center justify-center p-2.5 sm:px-3 sm:py-2 rounded-xl sm:rounded-full transition-all duration-200 cursor-pointer min-w-[44px] min-h-[44px]",
+            isEventsPanelOpen
+              ? "bg-purple-600 text-white shadow-md"
+              : "text-slate-600 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-950/30 hover:text-purple-600 dark:hover:text-purple-400"
+          )}
+          title="Campus Events & Schedules"
+          aria-label="Events hub"
+        >
+          <Calendar size={20} />
+          <span className="text-[9px] font-bold tracking-tight hidden md:inline-block mt-0.5">
+            Events
+          </span>
+        </button>
+
+        {/* AI Campus Assistant */}
+        {onToggleChat && (
+          <button
+            onClick={onToggleChat}
+            className={cn(
+              "flex flex-col items-center justify-center p-2.5 sm:px-3 sm:py-2 rounded-xl sm:rounded-full transition-all duration-200 cursor-pointer min-w-[44px] min-h-[44px]",
+              isChatOpen
+                ? "bg-emerald-600 text-white shadow-md"
+                : "text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 hover:text-emerald-600 dark:hover:text-emerald-400"
+            )}
+            title="RSU AI Assistant"
+            aria-label="AI Campus Guide"
+          >
+            <Sparkles size={20} className={cn(isChatOpen && "animate-spin")} />
+            <span className="text-[9px] font-bold tracking-tight hidden md:inline-block mt-0.5">
+              Assistant
+            </span>
+          </button>
         )}
-        title="Locate Me"
-      >
-        <LocateFixed size={24} className={cn(isFollowingUser && "animate-pulse")} />
-      </button>
-    </div>
+
+        {/* Add Location (for authenticated users/contributors) */}
+        {isSignedIn && (
+          <>
+            <div className="w-[1px] h-6 bg-slate-200 dark:bg-slate-800 mx-0.5 sm:mx-1" />
+            <button
+              onClick={onAddLocationClick}
+              disabled={isLocating}
+              className={cn(
+                "flex flex-col items-center justify-center p-2.5 sm:px-3 sm:py-2 rounded-xl sm:rounded-full transition-all duration-200 cursor-pointer min-w-[44px] min-h-[44px]",
+                isLocating 
+                  ? "bg-slate-200 dark:bg-slate-800 text-slate-400 animate-pulse"
+                  : "bg-sky-500 text-white hover:bg-sky-600 shadow-md"
+              )}
+              title="Add Custom Landmark (Checks GPS)"
+              id="add-custom-location-btn"
+              aria-label="Add location"
+            >
+              <MapPin size={20} className={cn(isLocating && "animate-spin")} />
+              <span className="text-[9px] font-bold tracking-tight hidden md:inline-block mt-0.5">
+                {isLocating ? "Locating..." : "Add Point"}
+              </span>
+            </button>
+          </>
+        )}
+
+      </div>
+    </motion.nav>
   );
 };
