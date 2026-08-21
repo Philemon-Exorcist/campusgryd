@@ -49,26 +49,25 @@ export const FloatingActions: React.FC<FloatingActionsProps> = ({
   isChatOpen = false,
   onToggleChat
 }) => {
+  const isHidden = hasActiveSelection || isPanelExpanded;
+
   return (
     <motion.nav
-      initial={{ y: 40, opacity: 0, scale: 0.95 }}
+      initial={{ y: 60, opacity: 0, scale: 0.95 }}
       animate={{ 
-        y: isPanelExpanded ? 60 : 0, 
-        opacity: isPanelExpanded ? 0 : 1, 
-        scale: isPanelExpanded ? 0.9 : 1,
-        pointerEvents: isPanelExpanded ? 'none' : 'auto'
+        y: isHidden ? 90 : 0, 
+        opacity: isHidden ? 0 : 1, 
+        scale: isHidden ? 0.9 : 1,
+        pointerEvents: isHidden ? 'none' : 'auto'
       }}
-      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
       className={cn(
-        "fixed z-30 left-1/2 -translate-x-1/2 transition-all duration-300",
-        // Responsive positioning based on bottom sheet state
-        hasActiveSelection 
-          ? "bottom-[195px] md:bottom-6" 
-          : "bottom-4 sm:bottom-6",
+        "fixed z-30 left-1/2 -translate-x-1/2 bottom-4 sm:bottom-6 transition-all duration-300",
         // Shift slightly on desktop if sidebar panels are open
         (isTimetableOpen || isEventsPanelOpen) && "md:left-[calc(50%-200px)]"
       )}
       aria-label="Campus Navigation Bar"
+      aria-hidden={isHidden}
     >
       <div className="flex items-center gap-1 sm:gap-2 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-2xl sm:rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border border-slate-200/90 dark:border-slate-800/80 shadow-[0_16px_40px_-10px_rgba(0,0,0,0.28)] ring-1 ring-black/5 dark:ring-white/10">
         
