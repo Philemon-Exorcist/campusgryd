@@ -1,15 +1,16 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { 
   Layers, 
   LocateFixed, 
   BookOpen, 
-  Calendar, 
-  MapPin, 
+  User as UserIcon,
   Sparkles,
-  Compass,
-  Navigation
+  MapPin,
+  Radio,
+  Users
 } from 'lucide-react';
+import { User } from 'firebase/auth';
 import { cn } from '../../lib/utils';
 
 interface FloatingActionsProps {
@@ -18,17 +19,23 @@ interface FloatingActionsProps {
   setNotification: (n: { message: string, type: 'info' | 'error' | 'success' }) => void;
   handleLocateMe: () => void;
   isFollowingUser: boolean;
-  toggleEvents: () => void;
   toggleTimetable: () => void;
+  toggleProfile: () => void;
   isSignedIn: boolean;
-  onAddLocationClick: () => void;
-  isLocating: boolean;
+  currentUser?: User | null;
+  onAddLocationClick?: () => void;
+  isLocating?: boolean;
   hasActiveSelection?: boolean;
   isPanelExpanded?: boolean;
   isTimetableOpen?: boolean;
+  isProfileOpen?: boolean;
   isEventsPanelOpen?: boolean;
   isChatOpen?: boolean;
   onToggleChat?: () => void;
+  isMeetupOpen?: boolean;
+  toggleMeetup?: () => void;
+  isLiveSharing?: boolean;
+  activeFriendsCount?: number;
 }
 
 export const FloatingActions: React.FC<FloatingActionsProps> = ({
@@ -37,19 +44,38 @@ export const FloatingActions: React.FC<FloatingActionsProps> = ({
   setNotification,
   handleLocateMe,
   isFollowingUser,
-  toggleEvents,
   toggleTimetable,
+  toggleProfile,
   isSignedIn,
-  onAddLocationClick,
-  isLocating,
+  currentUser,
   hasActiveSelection = false,
   isPanelExpanded = false,
   isTimetableOpen = false,
+  isProfileOpen = false,
   isEventsPanelOpen = false,
   isChatOpen = false,
-  onToggleChat
+  onToggleChat,
+  isMeetupOpen = false,
+  toggleMeetup,
+  isLiveSharing = false,
+  activeFriendsCount = 0
 }) => {
   const isHidden = hasActiveSelection || isPanelExpanded;
+
+  // Compute initials for user avatar fallback
+  const getInitials = (name?: string | null, email?: string | null) => {
+    if (name && name.trim()) {
+      const parts = name.trim().split(' ');
+      if (parts.length >= 2) {
+        return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+      }
+      return name.slice(0, 2).toUpperCase();
+    }
+    if (email && email.trim()) {
+      return email.slice(0, 2).toUpperCase();
+    }
+    return 'U';
+  };
 
   return (
     <motion.nav
@@ -64,7 +90,7 @@ export const FloatingActions: React.FC<FloatingActionsProps> = ({
       className={cn(
         "fixed z-30 left-1/2 -translate-x-1/2 bottom-4 sm:bottom-6 transition-all duration-300",
         // Shift slightly on desktop if sidebar panels are open
-        (isTimetableOpen || isEventsPanelOpen) && "md:left-[calc(50%-200px)]"
+        (isTimetableOpen || isEventsPanelOpen || isProfileOpen || isMeetupOpen) && "md:left-[calc(50%-200px)]"
       )}
       aria-label="Campus Navigation Bar"
       aria-hidden={isHidden}
@@ -120,6 +146,39 @@ export const FloatingActions: React.FC<FloatingActionsProps> = ({
           </span>
         </button>
 
+        {/* Meetup / Friend Location Sharing */}
+        {toggleMeetup && (
+          <button
+            onClick={toggleMeetup}
+            className={cn(
+              "relative flex flex-col items-center justify-center p-2.5 sm:px-3 sm:py-2 rounded-xl sm:rounded-full transition-all duration-200 cursor-pointer min-w-[44px] min-h-[44px]",
+              isMeetupOpen
+                ? "bg-teal-600 text-white shadow-md ring-2 ring-teal-500/20"
+                : isLiveSharing
+                ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-400/60"
+                : "text-slate-600 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-teal-950/30 hover:text-teal-600 dark:hover:text-teal-400"
+            )}
+            title="Opt-in Campus Meetups & Live Location"
+            aria-label="Campus meetups and location sharing"
+          >
+            {isLiveSharing && (
+              <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+              </span>
+            )}
+            {activeFriendsCount > 0 && !isLiveSharing && (
+              <span className="absolute -top-0.5 -right-0.5 px-1 py-0.2 bg-emerald-600 text-white rounded-full text-[8px] font-mono font-bold">
+                {activeFriendsCount}
+              </span>
+            )}
+            <Radio size={20} className={cn(isLiveSharing && "animate-pulse text-emerald-600 dark:text-emerald-400")} />
+            <span className="text-[9px] font-bold tracking-tight hidden md:inline-block mt-0.5">
+              Meetups
+            </span>
+          </button>
+        )}
+
         {/* Subtle Divider */}
         <div className="w-[1px] h-6 bg-slate-200 dark:bg-slate-800 mx-0.5 sm:mx-1" />
 
@@ -141,70 +200,70 @@ export const FloatingActions: React.FC<FloatingActionsProps> = ({
           </span>
         </button>
 
-        {/* Campus Events */}
-        <button
-          onClick={toggleEvents}
-          className={cn(
-            "flex flex-col items-center justify-center p-2.5 sm:px-3 sm:py-2 rounded-xl sm:rounded-full transition-all duration-200 cursor-pointer min-w-[44px] min-h-[44px]",
-            isEventsPanelOpen
-              ? "bg-purple-600 text-white shadow-md"
-              : "text-slate-600 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-950/30 hover:text-purple-600 dark:hover:text-purple-400"
-          )}
-          title="Campus Events & Schedules"
-          aria-label="Events hub"
-        >
-          <Calendar size={20} />
-          <span className="text-[9px] font-bold tracking-tight hidden md:inline-block mt-0.5">
-            Events
-          </span>
-        </button>
-
-        {/* AI Campus Assistant */}
+        {/* Navi-bot AI Campus Guide */}
         {onToggleChat && (
           <button
             onClick={onToggleChat}
             className={cn(
               "flex flex-col items-center justify-center p-2.5 sm:px-3 sm:py-2 rounded-xl sm:rounded-full transition-all duration-200 cursor-pointer min-w-[44px] min-h-[44px]",
               isChatOpen
-                ? "bg-emerald-600 text-white shadow-md"
-                : "text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 hover:text-emerald-600 dark:hover:text-emerald-400"
+                ? "bg-purple-600 text-white shadow-md"
+                : "text-slate-600 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-950/30 hover:text-purple-600 dark:hover:text-purple-400"
             )}
-            title="RSU AI Assistant"
-            aria-label="AI Campus Guide"
+            title="RSU Navi-bot"
+            aria-label="RSU Navi-bot AI Guide"
           >
             <Sparkles size={20} className={cn(isChatOpen && "animate-spin")} />
             <span className="text-[9px] font-bold tracking-tight hidden md:inline-block mt-0.5">
-              Assistant
+              Navi-bot
             </span>
           </button>
         )}
 
-        {/* Add Location (for authenticated users/contributors) */}
-        {isSignedIn && (
-          <>
-            <div className="w-[1px] h-6 bg-slate-200 dark:bg-slate-800 mx-0.5 sm:mx-1" />
-            <button
-              onClick={onAddLocationClick}
-              disabled={isLocating}
-              className={cn(
-                "flex flex-col items-center justify-center p-2.5 sm:px-3 sm:py-2 rounded-xl sm:rounded-full transition-all duration-200 cursor-pointer min-w-[44px] min-h-[44px]",
-                isLocating 
-                  ? "bg-slate-200 dark:bg-slate-800 text-slate-400 animate-pulse"
-                  : "bg-sky-500 text-white hover:bg-sky-600 shadow-md"
-              )}
-              title="Add Custom Landmark (Checks GPS)"
-              id="add-custom-location-btn"
-              aria-label="Add location"
-            >
-              <MapPin size={20} className={cn(isLocating && "animate-spin")} />
-              <span className="text-[9px] font-bold tracking-tight hidden md:inline-block mt-0.5">
-                {isLocating ? "Locating..." : "Add Point"}
-              </span>
-            </button>
-          </>
-        )}
+        {/* Profile / Account Hub */}
+        <button
+          onClick={toggleProfile}
+          className={cn(
+            "flex flex-col items-center justify-center p-2.5 sm:px-3 sm:py-2 rounded-xl sm:rounded-full transition-all duration-200 cursor-pointer min-w-[44px] min-h-[44px]",
+            isProfileOpen
+              ? "bg-emerald-600 text-white shadow-md ring-2 ring-emerald-500/20"
+              : "text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 hover:text-emerald-600 dark:hover:text-emerald-400"
+          )}
+          title={currentUser ? `Profile: ${currentUser.displayName || currentUser.email}` : "Campus Profile & Hub"}
+          aria-label="Profile and events hub"
+        >
+          {currentUser ? (
+            currentUser.photoURL ? (
+              <div className="relative">
+                <img 
+                  src={currentUser.photoURL} 
+                  alt={currentUser.displayName || 'Profile'}
+                  referrerPolicy="no-referrer"
+                  className={cn(
+                    "w-5 h-5 rounded-full object-cover border",
+                    isProfileOpen ? "border-white" : "border-emerald-500"
+                  )}
+                />
+                <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-500 border border-white dark:border-slate-900 rounded-full" />
+              </div>
+            ) : (
+              <div className={cn(
+                "w-5 h-5 rounded-full font-black text-[9px] flex items-center justify-center border",
+                isProfileOpen ? "bg-white text-emerald-700 border-white" : "bg-emerald-600 text-white border-emerald-500"
+              )}>
+                {getInitials(currentUser.displayName, currentUser.email)}
+              </div>
+            )
+          ) : (
+            <UserIcon size={20} />
+          )}
+          <span className="text-[9px] font-bold tracking-tight hidden md:inline-block mt-0.5">
+            Profile
+          </span>
+        </button>
 
       </div>
     </motion.nav>
   );
 };
+

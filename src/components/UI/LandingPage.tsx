@@ -34,19 +34,29 @@ import {
   Menu,
   Shield,
   FileText,
-  Scale
+  Scale,
+  Ticket,
+  CheckCircle2,
+  Award,
+  Globe,
+  Activity,
+  Heart,
+  Share2,
+  Building2,
+  Bookmark
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Polyline, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { createCustomIcon } from '../../lib/icons';
 import { locations } from '../../data/locations';
+import { campusEvents, CampusEvent } from '../../data/events';
 import { Location, LocationType } from '../../types';
 import { cn } from '../../lib/utils';
 
 interface LandingPageProps {
   isDarkMode: boolean;
   setIsDarkMode: (val: boolean) => void;
-  onNavigateToMap: (initialLocation?: Location | null, openTimetable?: boolean, openEvents?: boolean) => void;
+  onNavigateToMap: (initialLocation?: Location | null, openTimetable?: boolean, openEvents?: boolean, openMeetup?: boolean) => void;
   onOpenTerms?: () => void;
   onOpenPrivacy?: () => void;
 }
@@ -128,8 +138,33 @@ export function LandingPage({
   const [activeTab, setActiveTab] = useState<'all' | 'faculty' | 'admin' | 'facility' | 'gate'>('all');
   const [simStepIdx, setSimStepIdx] = useState(0);
   const [simProgress, setSimProgress] = useState(25);
-  const [panelMode, setPanelMode] = useState<'map' | 'schedule' | 'assistant' | 'calculator'>('map');
+  const [panelMode, setPanelMode] = useState<'map' | 'schedule' | 'events' | 'assistant' | 'calculator'>('map');
   const [is3dTilted, setIs3dTilted] = useState(true);
+
+  // Events Showcase Filter & Search State
+  const [eventSearchQuery, setEventSearchQuery] = useState('');
+  const [eventCategoryFilter, setEventCategoryFilter] = useState<'all' | 'academic' | 'social' | 'sports' | 'conference'>('all');
+  const [rsvpdEventIds, setRsvpdEventIds] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('rsu_event_rsvps');
+        return saved ? JSON.parse(saved) : ['e1', 'e3'];
+      } catch (e) {
+        return ['e1', 'e3'];
+      }
+    }
+    return ['e1', 'e3'];
+  });
+
+  const handleToggleRsvp = (eventId: string) => {
+    setRsvpdEventIds(prev => {
+      const next = prev.includes(eventId) ? prev.filter(id => id !== eventId) : [...prev, eventId];
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('rsu_event_rsvps', JSON.stringify(next));
+      }
+      return next;
+    });
+  };
 
   // Quick Walk Time Estimator Widget State
   const [calcStartId, setCalcStartId] = useState<string>('main_gate');
@@ -237,12 +272,20 @@ export function LandingPage({
       a: "Simply select or import your course schedule. The system links each course code (e.g. ENG 301, GST 111) directly to its venue on the campus map, allowing 1-tap route tracing before your lecture starts."
     },
     {
+      q: "How do Campus Events and Attendance RSVP work?",
+      a: "Students can browse upcoming campus symposiums, sports tournaments, departmental dinners, and matriculation events. Clicking 'RSVP' saves the event to your profile hub and provides instant directions to the venue when it's time to attend."
+    },
+    {
       q: "Are the campus coordinates accurate for RSU?",
       a: "Yes. All location nodes are geocoded based on verified geodetic coordinates across RSU campus, including New Senate, Convocation Arena, Law Faculty, Engineering Complex, and Main Gate."
     },
     {
-      q: "What is the Gemini AI Campus Assistant?",
+      q: "What is the Navi-bot AI Campus Guide?",
       a: "An integrated AI guide that answers student queries about campus locations, department clearance procedures, exam halls, and walking times in natural conversational language."
+    },
+    {
+      q: "What is CampusGryd's mission at Rivers State University?",
+      a: "CampusGryd aims to eliminate orientation stress for over 30,000 students and visitors by uniting high-precision pedestrian wayfinding, academic schedules, events discovery, and Navi-bot AI assistance into one open, zero-telemetry campus platform."
     }
   ];
 
@@ -289,19 +332,32 @@ export function LandingPage({
         </div>
 
         {/* Navigation Links */}
-        <div className="hidden md:flex items-center gap-8 text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+        <div className="hidden md:flex items-center gap-6 lg:gap-8 text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
           <button 
             onClick={() => onNavigateToMap()} 
             className="hover:text-slate-950 dark:hover:text-white transition-colors cursor-pointer"
           >
             Campus Map
           </button>
+          <a 
+            href="#about-section" 
+            className="hover:text-slate-950 dark:hover:text-white transition-colors cursor-pointer text-blue-600 dark:text-blue-400 font-extrabold"
+          >
+            About CampusGryd
+          </a>
           <button 
             onClick={() => onNavigateToMap(null, true)} 
             className="hover:text-slate-950 dark:hover:text-white transition-colors cursor-pointer"
           >
             Class Schedule
           </button>
+          <a 
+            href="#events-section" 
+            className="hover:text-slate-950 dark:hover:text-white transition-colors cursor-pointer flex items-center gap-1"
+          >
+            <span>Events & RSVP</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+          </a>
           <a 
             href="#landmarks-section" 
             className="hover:text-slate-950 dark:hover:text-white transition-colors cursor-pointer"
@@ -318,7 +374,7 @@ export function LandingPage({
             href="#faq-section" 
             className="hover:text-slate-950 dark:hover:text-white transition-colors cursor-pointer"
           >
-            Help & FAQ
+            FAQ
           </a>
         </div>
 
@@ -387,6 +443,14 @@ export function LandingPage({
               <Map size={15} className="text-blue-500" />
               <span>Campus Map</span>
             </button>
+            <a 
+              href="#about-section" 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-3 py-2 text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 hover:text-blue-700 cursor-pointer border-b border-slate-100 dark:border-slate-800/80"
+            >
+              <GraduationCap size={15} className="text-blue-500" />
+              <span>About CampusGryd</span>
+            </a>
             <button 
               onClick={() => { setIsMobileMenuOpen(false); onNavigateToMap(null, true); }} 
               className="flex items-center gap-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 hover:text-blue-600 cursor-pointer border-b border-slate-100 dark:border-slate-800/80"
@@ -394,6 +458,14 @@ export function LandingPage({
               <Calendar size={15} className="text-emerald-500" />
               <span>Class Schedule</span>
             </button>
+            <a 
+              href="#events-section" 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 hover:text-rose-600 cursor-pointer border-b border-slate-100 dark:border-slate-800/80"
+            >
+              <Ticket size={15} className="text-rose-500" />
+              <span>Campus Events & RSVP</span>
+            </a>
             <a 
               href="#landmarks-section" 
               onClick={() => setIsMobileMenuOpen(false)}
@@ -492,7 +564,7 @@ export function LandingPage({
           </p>
 
           {/* Primary Sleek 3D Black Pill CTA */}
-          <div className="pt-1 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <div className="pt-1 flex flex-wrap items-center justify-center gap-3">
             <button
               onClick={() => onNavigateToMap()}
               className={cn(
@@ -514,7 +586,18 @@ export function LandingPage({
               )}
             >
               <Calendar size={14} className="text-blue-500" />
-              <span>Sync Course Schedule</span>
+              <span>Sync Schedule</span>
+            </button>
+
+            <button
+              onClick={() => onNavigateToMap(null, false, false, true)}
+              className={cn(
+                "px-5 py-3 rounded-full text-xs font-black uppercase tracking-widest border transition-all duration-300 hover:bg-emerald-500/10 cursor-pointer flex items-center gap-2 font-mono",
+                isDarkMode ? "border-emerald-500/30 text-emerald-300 hover:border-emerald-500/50" : "border-emerald-300 text-emerald-700 bg-emerald-50/50"
+              )}
+            >
+              <Users size={14} className="text-emerald-500" />
+              <span>Campus Meetups</span>
             </button>
           </div>
 
@@ -637,7 +720,7 @@ export function LandingPage({
               </button>
 
               <div className="hidden sm:flex items-center gap-1 bg-slate-200/70 dark:bg-slate-900 p-1 rounded-full border border-slate-200 dark:border-slate-800">
-                {(['map', 'schedule', 'assistant', 'calculator'] as const).map(mode => (
+                {(['map', 'schedule', 'events', 'assistant', 'calculator'] as const).map(mode => (
                   <button
                     key={mode}
                     onClick={() => setPanelMode(mode)}
@@ -648,7 +731,7 @@ export function LandingPage({
                         : "text-slate-600 hover:text-slate-950 dark:hover:text-white"
                     )}
                   >
-                    {mode === 'map' ? 'Live Route' : mode === 'schedule' ? 'Class Sync' : mode === 'assistant' ? 'AI Guide' : 'Estimator'}
+                    {mode === 'map' ? 'Live Route' : mode === 'schedule' ? 'Class Sync' : mode === 'events' ? 'Events & RSVP' : mode === 'assistant' ? 'Navi-bot' : 'Estimator'}
                   </button>
                 ))}
               </div>
@@ -818,11 +901,55 @@ export function LandingPage({
                 </div>
               )}
 
+              {panelMode === 'events' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <div>
+                      <p className="text-[9px] font-mono font-bold text-rose-600 dark:text-rose-400 uppercase tracking-widest">RSU CAMPUS EVENTS & RSVP</p>
+                      <h3 className="text-base font-black uppercase tracking-tight mt-0.5 text-slate-950 dark:text-white">Annual Tech & Innovation Expo</h3>
+                    </div>
+                    <span className="px-2.5 py-1 bg-rose-500/10 text-rose-600 dark:text-rose-400 font-mono text-[9px] font-black rounded-full uppercase">
+                      THIS SATURDAY
+                    </span>
+                  </div>
+
+                  <div className="p-3 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200/80 dark:border-slate-800 text-xs space-y-1">
+                    <p className="font-bold text-slate-900 dark:text-slate-100 uppercase">Convocation Arena &amp; Amphitheatre</p>
+                    <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 pt-1">
+                      <span>10:00 AM - 4:00 PM</span>
+                      <span className="text-emerald-500 font-bold">142 Students Attending</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => handleToggleRsvp('e1')}
+                      className={cn(
+                        "py-3 font-mono text-xs font-black rounded-full uppercase tracking-widest shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5",
+                        rsvpdEventIds.includes('e1')
+                          ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                          : "bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200 hover:bg-slate-300"
+                      )}
+                    >
+                      {rsvpdEventIds.includes('e1') ? <CheckCircle2 size={14} /> : <Ticket size={14} />}
+                      <span>{rsvpdEventIds.includes('e1') ? 'RSVP Confirmed' : 'RSVP Spot'}</span>
+                    </button>
+                    <button
+                      onClick={() => onNavigateToMap(null, false, true)}
+                      className="py-3 bg-rose-600 text-white font-mono text-xs font-black rounded-full uppercase tracking-widest shadow-md hover:bg-rose-500 transition-all cursor-pointer flex items-center justify-center gap-1"
+                    >
+                      <span>All Events</span>
+                      <ArrowRight size={13} />
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {panelMode === 'assistant' && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                     <div>
-                      <p className="text-[9px] font-mono font-bold text-purple-600 dark:text-purple-400 uppercase tracking-widest">GEMINI AI CAMPUS GUIDE</p>
+                      <p className="text-[9px] font-mono font-bold text-purple-600 dark:text-purple-400 uppercase tracking-widest">RSU NAVI-BOT AI GUIDE</p>
                       <h3 className="text-sm font-black uppercase tracking-tight mt-0.5 text-slate-950 dark:text-white">&ldquo;Where is clearance held?&rdquo;</h3>
                     </div>
                     <Sparkles size={18} className="text-purple-500" />
@@ -836,7 +963,7 @@ export function LandingPage({
                     onClick={() => onNavigateToMap()}
                     className="w-full py-3 bg-purple-600 text-white font-mono text-xs font-black rounded-full uppercase tracking-widest shadow-md hover:bg-purple-500 transition-all cursor-pointer flex items-center justify-center gap-2"
                   >
-                    <span>Ask AI Assistant</span>
+                    <span>Ask Navi-bot</span>
                     <ArrowRight size={14} />
                   </button>
                 </div>
@@ -902,7 +1029,7 @@ export function LandingPage({
         </div>
       </section>
 
-      {/* 3-COLUMN HIGH-IMPACT CAPABILITIES SECTION */}
+      {/* 6-PILLAR COMPREHENSIVE CAPABILITIES SECTION */}
       <section className={cn(
         "py-20 px-6 lg:px-16 border-t transition-colors",
         isDarkMode ? "bg-slate-900/60 border-slate-900" : "bg-white border-slate-200"
@@ -910,60 +1037,644 @@ export function LandingPage({
         <div className="max-w-7xl mx-auto space-y-12">
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <span className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">
-              ENGINEERED FOR RSU STUDENTS
+              ENGINEERED FOR RSU STUDENTS &amp; FACULTY
             </span>
             <h2 className="text-3xl sm:text-4xl font-display font-black uppercase text-slate-950 dark:text-white">
-              Everything you need for campus mobility
+              Everything you need for campus mobility &amp; life
             </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-lg mx-auto">
+              CampusGryd integrates geodetic mapping, automated class timetables, live campus events with RSVP, and Gemini AI assistance into one seamless web platform.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {/* Capability Card 1 */}
             <div className={cn(
-              "p-8 rounded-3xl border transition-all duration-300 hover:shadow-xl space-y-4",
-              isDarkMode ? "bg-slate-950 border-slate-850" : "bg-[#F8FAFC] border-slate-200"
+              "p-7 rounded-3xl border transition-all duration-300 hover:shadow-xl space-y-4 relative overflow-hidden group",
+              isDarkMode ? "bg-slate-950 border-slate-850 hover:border-slate-700" : "bg-[#F8FAFC] border-slate-200 hover:border-slate-300"
             )}>
               <div className="w-12 h-12 rounded-2xl bg-slate-950 text-white dark:bg-white dark:text-slate-950 flex items-center justify-center shadow-md">
                 <Navigation size={22} className="transform rotate-45" />
               </div>
-              <h3 className="text-xl font-display font-black uppercase text-slate-950 dark:text-white">
+              <h3 className="text-lg font-display font-black uppercase text-slate-950 dark:text-white">
                 Geodetic Turn Guidance
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-                Step-by-step pedestrian routes mapped across RSU lecture theaters, Senate buildings, hostels, and sports arenas with walking time estimates.
+                Step-by-step pedestrian routes mapped across RSU lecture theaters, Senate buildings, hostels, and sports arenas with precise walk time and distance estimates.
               </p>
+              <button 
+                onClick={() => onNavigateToMap()}
+                className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400 uppercase flex items-center gap-1 hover:gap-2 transition-all cursor-pointer pt-2"
+              >
+                <span>Launch Turn Guidance</span>
+                <ArrowRight size={13} />
+              </button>
             </div>
 
             {/* Capability Card 2 */}
             <div className={cn(
-              "p-8 rounded-3xl border transition-all duration-300 hover:shadow-xl space-y-4",
-              isDarkMode ? "bg-slate-950 border-slate-850" : "bg-[#F8FAFC] border-slate-200"
+              "p-7 rounded-3xl border transition-all duration-300 hover:shadow-xl space-y-4 relative overflow-hidden group",
+              isDarkMode ? "bg-slate-950 border-slate-850 hover:border-slate-700" : "bg-[#F8FAFC] border-slate-200 hover:border-slate-300"
             )}>
               <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-md">
                 <Calendar size={22} />
               </div>
-              <h3 className="text-xl font-display font-black uppercase text-slate-950 dark:text-white">
+              <h3 className="text-lg font-display font-black uppercase text-slate-950 dark:text-white">
                 Course Timetable Sync
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-                Sync your weekly lecture timetable. Get direct 1-tap navigation to your specific lecture venue before class starts.
+                Sync your weekly lecture timetable. Get direct 1-tap navigation to your specific lecture hall, lab, or workshop before your class commences.
               </p>
+              <button 
+                onClick={() => onNavigateToMap(null, true)}
+                className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400 uppercase flex items-center gap-1 hover:gap-2 transition-all cursor-pointer pt-2"
+              >
+                <span>Open Timetable</span>
+                <ArrowRight size={13} />
+              </button>
             </div>
 
             {/* Capability Card 3 */}
             <div className={cn(
-              "p-8 rounded-3xl border transition-all duration-300 hover:shadow-xl space-y-4",
-              isDarkMode ? "bg-slate-950 border-slate-850" : "bg-[#F8FAFC] border-slate-200"
+              "p-7 rounded-3xl border transition-all duration-300 hover:shadow-xl space-y-4 relative overflow-hidden group",
+              isDarkMode ? "bg-slate-950 border-slate-850 hover:border-slate-700" : "bg-[#F8FAFC] border-slate-200 hover:border-slate-300"
+            )}>
+              <div className="w-12 h-12 rounded-2xl bg-rose-600 text-white flex items-center justify-center shadow-md">
+                <Ticket size={22} />
+              </div>
+              <h3 className="text-lg font-display font-black uppercase text-slate-950 dark:text-white">
+                Campus Events &amp; RSVP
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                Discover university symposiums, matriculation, faculty dinners, tech expos, and sports matches with instant RSVP confirmation and venue directions.
+              </p>
+              <a 
+                href="#events-section"
+                className="text-xs font-mono font-bold text-rose-600 dark:text-rose-400 uppercase flex items-center gap-1 hover:gap-2 transition-all cursor-pointer pt-2"
+              >
+                <span>Explore Events &amp; RSVP</span>
+                <ArrowRight size={13} />
+              </a>
+            </div>
+
+            {/* Capability Card 4 */}
+            <div className={cn(
+              "p-7 rounded-3xl border transition-all duration-300 hover:shadow-xl space-y-4 relative overflow-hidden group",
+              isDarkMode ? "bg-slate-950 border-slate-850 hover:border-slate-700" : "bg-[#F8FAFC] border-slate-200 hover:border-slate-300"
             )}>
               <div className="w-12 h-12 rounded-2xl bg-purple-600 text-white flex items-center justify-center shadow-md">
                 <Sparkles size={22} />
               </div>
-              <h3 className="text-xl font-display font-black uppercase text-slate-950 dark:text-white">
-                AI Campus Assistant
+              <h3 className="text-lg font-display font-black uppercase text-slate-950 dark:text-white">
+                Navi-bot AI Assistant
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-                Ask Gemini AI natural questions about clearance procedures, faculty office hours, exam centers, and shortcut pathways.
+                Ask Navi-bot conversational questions about clearance procedures, faculty office hours, exam centers, syllabus details, and pedestrian shortcuts.
               </p>
+              <button 
+                onClick={() => onNavigateToMap()}
+                className="text-xs font-mono font-bold text-purple-600 dark:text-purple-400 uppercase flex items-center gap-1 hover:gap-2 transition-all cursor-pointer pt-2"
+              >
+                <span>Chat with Navi-bot</span>
+                <ArrowRight size={13} />
+              </button>
+            </div>
+
+            {/* Capability Card 5 */}
+            <div className={cn(
+              "p-7 rounded-3xl border transition-all duration-300 hover:shadow-xl space-y-4 relative overflow-hidden group",
+              isDarkMode ? "bg-slate-950 border-slate-850 hover:border-slate-700" : "bg-[#F8FAFC] border-slate-200 hover:border-slate-300"
+            )}>
+              <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-md">
+                <Users size={22} />
+              </div>
+              <h3 className="text-lg font-display font-black uppercase text-slate-950 dark:text-white">
+                Opt-In Social Meetups
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                Share a temporary live location beacon with course mates via private share codes. Disconnect anytime with zero tracking telemetry.
+              </p>
+              <button 
+                onClick={() => onNavigateToMap(null, false, false, true)}
+                className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 uppercase flex items-center gap-1 hover:gap-2 transition-all cursor-pointer pt-2"
+              >
+                <span>Start Meetup Share</span>
+                <ArrowRight size={13} />
+              </button>
+            </div>
+
+            {/* Capability Card 6 */}
+            <div className={cn(
+              "p-7 rounded-3xl border transition-all duration-300 hover:shadow-xl space-y-4 relative overflow-hidden group",
+              isDarkMode ? "bg-slate-950 border-slate-850 hover:border-slate-700" : "bg-[#F8FAFC] border-slate-200 hover:border-slate-300"
+            )}>
+              <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-md">
+                <MapPin size={22} />
+              </div>
+              <h3 className="text-lg font-display font-black uppercase text-slate-950 dark:text-white">
+                Community Landmark Pinning
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                Pin custom department study spots, kiosk locations, or lecture annexes. Moderated by campus admins for verified accuracy.
+              </p>
+              <button 
+                onClick={() => onNavigateToMap()}
+                className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400 uppercase flex items-center gap-1 hover:gap-2 transition-all cursor-pointer pt-2"
+              >
+                <span>Contribute Landmark</span>
+                <ArrowRight size={13} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* NEW: UPCOMING CAMPUS EVENTS & RSVP HUB SECTION */}
+      <section id="events-section" className={cn(
+        "py-20 px-6 lg:px-16 border-t transition-colors",
+        isDarkMode ? "bg-slate-950 border-slate-900" : "bg-slate-50 border-slate-200"
+      )}>
+        <div className="max-w-7xl mx-auto space-y-10">
+          
+          {/* Section Header */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-widest bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                <Ticket size={12} className="text-rose-500" />
+                <span>CAMPUS ACTIVITIES &amp; SYMPOSIUMS</span>
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-display font-black uppercase text-slate-950 dark:text-white">
+                RSU Campus Events &amp; RSVP
+              </h2>
+              <p className="text-xs text-slate-600 dark:text-slate-400 max-w-xl font-medium">
+                Stay updated with official academic summits, cultural festivals, sports matches, and career expos. Reserve your attendance and get instant turn-by-turn walking routes to the venue.
+              </p>
+            </div>
+
+            <button
+              onClick={() => onNavigateToMap(null, false, true)}
+              className="px-5 py-3 rounded-full text-xs font-black uppercase tracking-widest bg-rose-600 text-white hover:bg-rose-500 transition-all duration-300 shadow-lg shadow-rose-600/20 flex items-center gap-2 cursor-pointer shrink-0 self-start md:self-auto font-mono"
+            >
+              <span>Open Events Hub</span>
+              <ArrowRight size={14} />
+            </button>
+          </div>
+
+          {/* Search and Category Filter Bar */}
+          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+            
+            {/* Category Filter Pills */}
+            <div className="flex flex-wrap gap-2">
+              {(['all', 'academic', 'social', 'sports', 'conference'] as const).map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setEventCategoryFilter(cat)}
+                  className={cn(
+                    "px-4 py-2 rounded-full text-xs font-mono font-bold uppercase transition-all cursor-pointer border",
+                    eventCategoryFilter === cat
+                      ? "bg-rose-600 border-rose-600 text-white shadow-md shadow-rose-600/20"
+                      : isDarkMode 
+                        ? "bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-850" 
+                        : "bg-white border-slate-200 text-slate-700 hover:bg-slate-100"
+                  )}
+                >
+                  {cat === 'all' ? 'All Events' : cat === 'academic' ? 'Academic' : cat === 'social' ? 'Social' : cat === 'sports' ? 'Sports' : 'Conferences'}
+                </button>
+              ))}
+            </div>
+
+            {/* Event Search Input */}
+            <div className="relative max-w-md w-full">
+              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search events by title, venue, or speaker..."
+                value={eventSearchQuery}
+                onChange={(e) => setEventSearchQuery(e.target.value)}
+                className={cn(
+                  "w-full pl-10 pr-9 py-2.5 rounded-full text-xs font-medium border focus:outline-none transition-all",
+                  isDarkMode 
+                    ? "bg-slate-900 border-slate-800 text-white placeholder:text-slate-500 focus:border-rose-500" 
+                    : "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-rose-500 shadow-sm"
+                )}
+              />
+              {eventSearchQuery && (
+                <button
+                  onClick={() => setEventSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Events Grid */}
+          {(() => {
+            const filteredEvents = campusEvents.filter(ev => {
+              const locName = locations.find(l => l.id === ev.locationId)?.officialName || '';
+              const matchesSearch = !eventSearchQuery.trim() ||
+                ev.title.toLowerCase().includes(eventSearchQuery.toLowerCase()) ||
+                ev.description.toLowerCase().includes(eventSearchQuery.toLowerCase()) ||
+                locName.toLowerCase().includes(eventSearchQuery.toLowerCase()) ||
+                ev.organizer.toLowerCase().includes(eventSearchQuery.toLowerCase());
+              const matchesCat = eventCategoryFilter === 'all' || ev.category === eventCategoryFilter;
+              return matchesSearch && matchesCat;
+            });
+
+            if (filteredEvents.length === 0) {
+              return (
+                <div className={cn(
+                  "p-12 text-center rounded-3xl border space-y-3",
+                  isDarkMode ? "bg-slate-900/40 border-slate-800" : "bg-white border-slate-200"
+                )}>
+                  <Ticket size={32} className="mx-auto text-slate-400 opacity-60" />
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">No campus events match your filter</h3>
+                  <p className="text-xs text-slate-500">Try clearing the search query or switching categories.</p>
+                  <button
+                    onClick={() => { setEventSearchQuery(''); setEventCategoryFilter('all'); }}
+                    className="px-4 py-2 bg-slate-200 dark:bg-slate-800 rounded-full text-xs font-bold uppercase tracking-wider cursor-pointer hover:opacity-80"
+                  >
+                    Reset Filters
+                  </button>
+                </div>
+              );
+            }
+
+            return (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredEvents.map(event => {
+                  const isRsvpd = rsvpdEventIds.includes(event.id);
+                  const matchedLoc = locations.find(l => l.id === event.locationId);
+                  const venueName = matchedLoc ? matchedLoc.officialName : 'Campus Venue';
+
+                  const categoryStyles: Record<string, string> = {
+                    academic: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+                    social: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
+                    sports: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+                    conference: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                  };
+
+                  return (
+                    <div
+                      key={event.id}
+                      className={cn(
+                        "p-6 rounded-3xl border transition-all duration-300 hover:shadow-xl flex flex-col justify-between space-y-4 group",
+                        isDarkMode ? "bg-slate-900/90 border-slate-800 hover:border-slate-700" : "bg-white border-slate-200 hover:border-slate-300"
+                      )}
+                    >
+                      <div className="space-y-3">
+                        {/* Badges row */}
+                        <div className="flex items-center justify-between gap-2">
+                          <span className={cn(
+                            "px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider border",
+                            categoryStyles[event.category] || "bg-slate-500/10 text-slate-600 border-slate-500/20"
+                          )}>
+                            {event.category}
+                          </span>
+                          <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                            <Clock size={11} />
+                            <span>{event.startTime} - {event.endTime}</span>
+                          </span>
+                        </div>
+
+                        {/* Title */}
+                        <h3 className="text-base font-display font-black uppercase text-slate-950 dark:text-white leading-snug group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
+                          {event.title}
+                        </h3>
+
+                        {/* Description */}
+                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-2">
+                          {event.description}
+                        </p>
+
+                        {/* Venue and Organizer */}
+                        <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1.5 text-xs">
+                          <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 font-bold">
+                            <MapPin size={13} className="text-rose-500 shrink-0" />
+                            <span className="truncate">{venueName}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
+                            <span>By: {event.organizer}</span>
+                            <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{event.date}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Interactive Buttons */}
+                      <div className="pt-2 grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => handleToggleRsvp(event.id)}
+                          className={cn(
+                            "py-2.5 px-3 rounded-full text-xs font-mono font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm",
+                            isRsvpd
+                              ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                              : isDarkMode
+                                ? "bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700"
+                                : "bg-slate-100 text-slate-800 hover:bg-slate-200 border border-slate-200"
+                          )}
+                        >
+                          {isRsvpd ? (
+                            <>
+                              <CheckCircle2 size={13} />
+                              <span>Attending</span>
+                            </>
+                          ) : (
+                            <>
+                              <Ticket size={13} className="text-rose-500" />
+                              <span>RSVP Spot</span>
+                            </>
+                          )}
+                        </button>
+
+                        <button
+                          onClick={() => onNavigateToMap(matchedLoc || null)}
+                          className="py-2.5 px-3 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-slate-950 text-white dark:bg-white dark:text-slate-950 hover:bg-rose-600 dark:hover:bg-rose-600 dark:hover:text-white transition-all flex items-center justify-center gap-1 cursor-pointer shadow-sm"
+                          title="Calculate walking path to event venue"
+                        >
+                          <span>Venue Route</span>
+                          <ArrowRight size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+        </div>
+      </section>
+
+      {/* NEW: COMPREHENSIVE ABOUT CAMPUSGRYD SECTION */}
+      <section id="about-section" className={cn(
+        "py-24 px-6 lg:px-16 border-t transition-colors relative overflow-hidden",
+        isDarkMode ? "bg-slate-900/40 border-slate-900" : "bg-white border-slate-200"
+      )}>
+        <div className="max-w-7xl mx-auto space-y-16">
+          
+          {/* Main About Banner */}
+          <div className="max-w-3xl mx-auto text-center space-y-4">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-widest bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+              <GraduationCap size={14} />
+              <span>ABOUT THE CAMPUSGRYD PLATFORM</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-black uppercase text-slate-950 dark:text-white tracking-tight">
+              Empowering 30,000+ Students with Spatial Intelligence
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-2xl mx-auto font-medium">
+              CampusGryd is the dedicated geodetic navigation, course scheduling, and campus event ecosystem built specifically for Rivers State University (RSU), Port Harcourt.
+            </p>
+          </div>
+
+          {/* 4 Core Pillars of CampusGryd */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            {/* Pillar 1 */}
+            <div className={cn(
+              "p-8 rounded-3xl border transition-all duration-300 space-y-4",
+              isDarkMode ? "bg-slate-950 border-slate-850" : "bg-slate-50 border-slate-200"
+            )}>
+              <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-600/20">
+                <Route size={22} />
+              </div>
+              <h3 className="text-xl font-display font-black uppercase text-slate-950 dark:text-white">
+                1. Vector Pedestrian Navigation &amp; Routing
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                Traditional street mapping platforms fail within university campuses because they lack interior footpaths, lecture room alleys, and faculty gates. CampusGryd maps every pedestrian route across all faculties, halls, the Senate Complex, and hostels with sub-meter coordinate precision.
+              </p>
+              <ul className="space-y-2 pt-2 text-xs font-mono text-slate-700 dark:text-slate-300">
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                  <span>Real-time GPS user position lock and compass orientation</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                  <span>Dynamic walking time, distance, and calorie expenditure</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                  <span>Step-by-step turn guidance instructions</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Pillar 2 */}
+            <div className={cn(
+              "p-8 rounded-3xl border transition-all duration-300 space-y-4",
+              isDarkMode ? "bg-slate-950 border-slate-850" : "bg-slate-50 border-slate-200"
+            )}>
+              <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-600/20">
+                <BookOpen size={22} />
+              </div>
+              <h3 className="text-xl font-display font-black uppercase text-slate-950 dark:text-white">
+                2. Academic Timetable &amp; Lecture Venue Sync
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                Say goodbye to missed lectures and confusing venue codes like &ldquo;ETF Hall B&rdquo; or &ldquo;Faculty Workshop 3&rdquo;. CampusGryd links your department courses to physical buildings, enabling instant 1-tap route tracing straight to your seat before class commences.
+              </p>
+              <ul className="space-y-2 pt-2 text-xs font-mono text-slate-700 dark:text-slate-300">
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                  <span>GST, Departmental, and Faculty course schedule organizer</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                  <span>Next-class notification alerts with remaining walking time</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                  <span>Export class schedule directly to Google Calendar</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Pillar 3 */}
+            <div className={cn(
+              "p-8 rounded-3xl border transition-all duration-300 space-y-4",
+              isDarkMode ? "bg-slate-950 border-slate-850" : "bg-slate-50 border-slate-200"
+            )}>
+              <div className="w-12 h-12 rounded-2xl bg-rose-600 text-white flex items-center justify-center shadow-lg shadow-rose-600/20">
+                <Ticket size={22} />
+              </div>
+              <h3 className="text-xl font-display font-black uppercase text-slate-950 dark:text-white">
+                3. Campus Events Hub &amp; Interactive RSVP
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                Stay tapped into university life. CampusGryd provides a centralized directory for all student union events, departmental dinners, matriculation rites, faculty summits, and sports rivalries with attendance RSVP tracking.
+              </p>
+              <ul className="space-y-2 pt-2 text-xs font-mono text-slate-700 dark:text-slate-300">
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                  <span>Live search, filter by category (Academic, Social, Sports)</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                  <span>Instant 1-click RSVP with Cloud sync to student profile</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                  <span>Admin event publishing and verified moderator controls</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Pillar 4 */}
+            <div className={cn(
+              "p-8 rounded-3xl border transition-all duration-300 space-y-4",
+              isDarkMode ? "bg-slate-950 border-slate-850" : "bg-slate-50 border-slate-200"
+            )}>
+              <div className="w-12 h-12 rounded-2xl bg-purple-600 text-white flex items-center justify-center shadow-lg shadow-purple-600/20">
+                <Sparkles size={22} />
+              </div>
+              <h3 className="text-xl font-display font-black uppercase text-slate-950 dark:text-white">
+                4. Navi-bot AI Campus Helpdesk &amp; Guide
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                Integrated conversational intelligence grounded in Rivers State University context. Freshers can ask about clearance steps, faculty fees, hostel check-in rules, departmental offices, or optimal pathways across campus.
+              </p>
+              <ul className="space-y-2 pt-2 text-xs font-mono text-slate-700 dark:text-slate-300">
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                  <span>Grounded answers on RSU administrative procedures</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                  <span>Direct links from AI suggestions to map markers</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                  <span>Natural language query support in simple conversational tone</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Pillar 5 */}
+            <div className={cn(
+              "p-8 rounded-3xl border transition-all duration-300 space-y-4 md:col-span-2",
+              isDarkMode ? "bg-slate-950 border-slate-850" : "bg-slate-50 border-slate-200"
+            )}>
+              <div className="w-12 h-12 rounded-2xl bg-teal-600 text-white flex items-center justify-center shadow-lg shadow-teal-600/20">
+                <Users size={22} />
+              </div>
+              <h3 className="text-xl font-display font-black uppercase text-slate-950 dark:text-white">
+                5. Zero-Telemetry Ephemeral Live Meetups &amp; Friend Beacons
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                Coordinate group project meetings, faculty study sessions, and campus hangouts effortlessly. Share a temporary beacon code with specific course mates that automatically self-destructs after your chosen duration (15m, 30m, 1h, 2h).
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs font-mono text-slate-700 dark:text-slate-300">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                  <span>Time-limited ephemeral beacon codes</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                  <span>Zero background tracking or telemetry</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                  <span>Instant 1-tap walking directions to friend</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* User Archetypes Grid (Who is CampusGryd for?) */}
+          <div className="space-y-8">
+            <div className="text-center space-y-2">
+              <span className="text-xs font-mono font-bold text-slate-500 uppercase tracking-widest">
+                TAILORED CAMPUS EXPERIENCES
+              </span>
+              <h3 className="text-2xl sm:text-3xl font-display font-black uppercase text-slate-950 dark:text-white">
+                Who Benefits from CampusGryd?
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className={cn(
+                "p-6 rounded-3xl border space-y-3",
+                isDarkMode ? "bg-slate-950/80 border-slate-850" : "bg-white border-slate-200"
+              )}>
+                <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
+                  <School size={20} />
+                </div>
+                <h4 className="font-display font-black uppercase text-sm text-slate-950 dark:text-white">Freshers &amp; New Intakes</h4>
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Easily find Senate clearance centers, ICT centers, medical clinics, and bank branches without stress.
+                </p>
+              </div>
+
+              <div className={cn(
+                "p-6 rounded-3xl border space-y-3",
+                isDarkMode ? "bg-slate-950/80 border-slate-850" : "bg-white border-slate-200"
+              )}>
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
+                  <Users size={20} />
+                </div>
+                <h4 className="font-display font-black uppercase text-sm text-slate-950 dark:text-white">Undergraduates</h4>
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Navigate shifting lecture halls, sync course timetables, discover campus tech events, and RSVP with friends.
+                </p>
+              </div>
+
+              <div className={cn(
+                "p-6 rounded-3xl border space-y-3",
+                isDarkMode ? "bg-slate-950/80 border-slate-850" : "bg-white border-slate-200"
+              )}>
+                <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold">
+                  <Building2 size={20} />
+                </div>
+                <h4 className="font-display font-black uppercase text-sm text-slate-950 dark:text-white">Faculty &amp; Staff</h4>
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Coordinate departmental meetings, find administrative offices, and publish verified academic conferences.
+                </p>
+              </div>
+
+              <div className={cn(
+                "p-6 rounded-3xl border space-y-3",
+                isDarkMode ? "bg-slate-950/80 border-slate-850" : "bg-white border-slate-200"
+              )}>
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+                  <Award size={20} />
+                </div>
+                <h4 className="font-display font-black uppercase text-sm text-slate-950 dark:text-white">Visitors &amp; Guests</h4>
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Effortless parking and entrance navigation during matriculation, convocation ceremonies, and sports fixtures.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Key Metrics / Platform Standards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 text-center">
+            <div className={cn(
+              "p-6 rounded-2xl border",
+              isDarkMode ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"
+            )}>
+              <p className="text-3xl sm:text-4xl font-display font-black text-blue-600 dark:text-blue-400">50+</p>
+              <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 mt-1">Geocoded Landmarks</p>
+            </div>
+            <div className={cn(
+              "p-6 rounded-2xl border",
+              isDarkMode ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"
+            )}>
+              <p className="text-3xl sm:text-4xl font-display font-black text-emerald-600 dark:text-emerald-400">7+</p>
+              <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 mt-1">Major Faculties</p>
+            </div>
+            <div className={cn(
+              "p-6 rounded-2xl border",
+              isDarkMode ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"
+            )}>
+              <p className="text-3xl sm:text-4xl font-display font-black text-rose-600 dark:text-rose-400">100%</p>
+              <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 mt-1">Pedestrian Path Coverage</p>
+            </div>
+            <div className={cn(
+              "p-6 rounded-2xl border",
+              isDarkMode ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-200"
+            )}>
+              <p className="text-3xl sm:text-4xl font-display font-black text-purple-600 dark:text-purple-400">0</p>
+              <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 mt-1">Telemetry / Tracking</p>
             </div>
           </div>
         </div>
@@ -1197,12 +1908,24 @@ export function LandingPage({
               >
                 Map View
               </button>
+              <a 
+                href="#about-section" 
+                className="hover:text-blue-600 dark:hover:text-white transition-colors cursor-pointer"
+              >
+                About Platform
+              </a>
               <button 
                 onClick={() => onNavigateToMap(null, true)} 
                 className="hover:text-blue-600 dark:hover:text-white transition-colors cursor-pointer"
               >
                 Class Schedule
               </button>
+              <a 
+                href="#events-section" 
+                className="hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
+              >
+                Events &amp; RSVP
+              </a>
 
               <a 
                 href="/privacy.html"

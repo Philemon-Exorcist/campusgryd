@@ -36,7 +36,19 @@ import { FeatureCollection } from 'geojson';
 // Lazy-loaded secondary components to speed up initial bundle load
 const EventsPanel = React.lazy(() => import('./components/UI/EventsPanel').then(m => ({ default: m.EventsPanel })));
 const TimetablePanel = React.lazy(() => import('./components/UI/TimetablePanel').then(m => ({ default: m.TimetablePanel })));
+const ProfilePanel = React.lazy(() => import('./components/UI/ProfilePanel').then(m => ({ default: m.ProfilePanel })));
 const ChatBot = React.lazy(() => import('./components/Chat/ChatBot').then(m => ({ default: m.ChatBot })));
+const MeetupShareModal = React.lazy(() => import('./components/UI/MeetupShareModal').then(m => ({ default: m.MeetupShareModal })));
+import { LiveShareSession, FriendBeacon } from './types';
+import { 
+  updateLiveLocation, 
+  stopLiveShare, 
+  subscribeToShare, 
+  getSavedFriendCodes, 
+  saveFriendCode, 
+  removeFriendCode, 
+  MEETUP_STORAGE_KEY 
+} from './services/liveMeetupService';
 
 enum OperationType {
   CREATE = 'create',
@@ -152,6 +164,8 @@ export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEventsPanelOpen, setIsEventsPanelOpen] = useState(false);
   const [isTimetableOpen, setIsTimetableOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [openedFromProfile, setOpenedFromProfile] = useState(false);
   const [isPanelExpanded, setIsPanelExpanded] = useState(false);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -200,6 +214,25 @@ export default function App() {
     }
     return [];
   });
+
+  // Meetup & Live Location Sharing States:
+  const [isMeetupOpen, setIsMeetupOpen] = useState(false);
+  const [activeLiveShareSession, setActiveLiveShareSession] = useState<LiveShareSession | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem(MEETUP_STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved) as LiveShareSession;
+          if (parsed.isActive && Date.now() < parsed.expiresAt) {
+            return parsed;
+          }
+        }
+      } catch {}
+    }
+    return null;
+  });
+  const [savedFriendCodes, setSavedFriendCodes] = useState<string[]>(() => getSavedFriendCodes());
+  const [friendBeacons, setFriendBeacons] = useState<FriendBeacon[]>([]);
 
   const [customLocations, setCustomLocations] = useState<Location[]>([]);
 
@@ -503,7 +536,77 @@ export default function App() {
         });
       }
     }
+
+    // Direct Meetup Sharing Link Support (?meetup=RSU-XXXX)
+    const meetup_code = urlParams.get('meetup');
+    if (meetup_code) {
+      const formatted = meetup_code.trim().toUpperCase();
+      const updated = saveFriendCode(formatted);
+      setSavedFriendCodes(updated);
+      setIsMeetupOpen(true);
+      setIsTimetableOpen(false);
+      setIsProfileOpen(false);
+      setIsEventsPanelOpen(false);
+      setIsChatOpen(false);
+      setNotification({
+        message: `Connected to friend beacon ${formatted}!`,
+        type: 'success'
+      });
+    }
   }, []);
+
+  // Broadcast own location updates when active live sharing session is on
+  useEffect(() => {
+    if (!activeLiveShareSession || !activeLiveShareSession.isActive || !userLocation) return;
+
+    if (Date.now() > activeLiveShareSession.expiresAt) {
+      setActiveLiveShareSession(null);
+      return;
+    }
+
+    updateLiveLocation(activeLiveShareSession.id, userLocation).catch(err => {
+      console.warn("Live location broadcast update error:", err);
+    });
+  }, [userLocation?.[0], userLocation?.[1], activeLiveShareSession?.id, activeLiveShareSession?.isActive]);
+
+  // Subscribe to live updates for all connected friend beacons
+  useEffect(() => {
+    if (savedFriendCodes.length === 0) {
+      setFriendBeacons([]);
+      return;
+    }
+
+    const sessionsMap: Record<string, LiveShareSession | null> = {};
+    const unsubs: (() => void)[] = [];
+
+    const recalculateBeacons = () => {
+      const beacons: FriendBeacon[] = [];
+      Object.entries(sessionsMap).forEach(([code, session]) => {
+        if (!session || !session.isActive || Date.now() > session.expiresAt) return;
+        let distanceMeters: number | undefined = undefined;
+        if (userLocation && session.coordinates) {
+          distanceMeters = getDistanceInMeters(userLocation, session.coordinates);
+        }
+        beacons.push({
+          session,
+          distanceMeters,
+        });
+      });
+      setFriendBeacons(beacons);
+    };
+
+    savedFriendCodes.forEach((code) => {
+      const unsub = subscribeToShare(code, (session) => {
+        sessionsMap[code] = session;
+        recalculateBeacons();
+      });
+      unsubs.push(unsub);
+    });
+
+    return () => {
+      unsubs.forEach(u => u());
+    };
+  }, [savedFriendCodes, userLocation?.[0], userLocation?.[1]]);
 
   const handleShareRoute = () => {
     if (!selectedLocation) {
@@ -864,6 +967,7 @@ export default function App() {
       handleLocationSelect(loc);
       setIsEventsPanelOpen(false);
       setIsTimetableOpen(false);
+      setIsProfileOpen(false);
     }
   };
 
@@ -1339,17 +1443,157 @@ export default function App() {
           if (initialLocation) {
             handleLocationSelect(initialLocation);
           }
+          setIsChatOpen(false);
           if (openTimetable) {
             setIsTimetableOpen(true);
-          }
-          if (openEvents) {
+            setIsProfileOpen(false);
+            setIsEventsPanelOpen(false);
+          } else if (openEvents) {
             setIsEventsPanelOpen(true);
+            setIsProfileOpen(false);
+            setIsTimetableOpen(false);
+          } else {
+            setIsTimetableOpen(false);
+            setIsProfileOpen(false);
+            setIsEventsPanelOpen(false);
           }
           navigate('/map');
         }}
       />
     );
   }
+
+  // Mutually exclusive panel toggles
+  const handleToggleTimetable = () => {
+    setIsTimetableOpen(prev => {
+      const next = !prev;
+      if (next) {
+        setIsProfileOpen(false);
+        setIsEventsPanelOpen(false);
+        setIsChatOpen(false);
+        setIsMenuOpen(false);
+        setIsMeetupOpen(false);
+      }
+      return next;
+    });
+    setOpenedFromProfile(false);
+  };
+
+  const handleToggleProfile = () => {
+    setIsProfileOpen(prev => {
+      const next = !prev;
+      if (next) {
+        setIsTimetableOpen(false);
+        setIsEventsPanelOpen(false);
+        setIsChatOpen(false);
+        setIsMenuOpen(false);
+        setIsMeetupOpen(false);
+      }
+      return next;
+    });
+    setOpenedFromProfile(false);
+  };
+
+  const handleToggleEvents = () => {
+    setIsEventsPanelOpen(prev => {
+      const next = !prev;
+      if (next) {
+        setIsTimetableOpen(false);
+        setIsProfileOpen(false);
+        setIsChatOpen(false);
+        setIsMenuOpen(false);
+        setIsMeetupOpen(false);
+      }
+      return next;
+    });
+  };
+
+  const handleToggleChat = () => {
+    setIsChatOpen(prev => {
+      const next = !prev;
+      if (next) {
+        setIsTimetableOpen(false);
+        setIsProfileOpen(false);
+        setIsEventsPanelOpen(false);
+        setIsMenuOpen(false);
+        setIsMeetupOpen(false);
+      }
+      return next;
+    });
+  };
+
+  const handleChatOpenChange = (open: boolean) => {
+    if (open) {
+      setIsTimetableOpen(false);
+      setIsProfileOpen(false);
+      setIsEventsPanelOpen(false);
+      setIsMenuOpen(false);
+      setIsMeetupOpen(false);
+    }
+    setIsChatOpen(open);
+  };
+
+  const handleToggleMeetup = () => {
+    setIsMeetupOpen(prev => {
+      const next = !prev;
+      if (next) {
+        setIsTimetableOpen(false);
+        setIsProfileOpen(false);
+        setIsEventsPanelOpen(false);
+        setIsChatOpen(false);
+        setIsMenuOpen(false);
+      }
+      return next;
+    });
+  };
+
+  const handleAddFriendCode = async (code: string): Promise<boolean> => {
+    const formatted = code.trim().toUpperCase();
+    if (!formatted) return false;
+    const updated = saveFriendCode(formatted);
+    setSavedFriendCodes(updated);
+    setNotification({
+      message: `Beacon code ${formatted} connected!`,
+      type: 'success'
+    });
+    return true;
+  };
+
+  const handleRemoveFriendCode = (code: string) => {
+    const updated = removeFriendCode(code);
+    setSavedFriendCodes(updated);
+    setNotification({
+      message: `Disconnected beacon ${code}.`,
+      type: 'info'
+    });
+  };
+
+  const handleNavigateToFriend = (coords: [number, number], name: string) => {
+    const friendLoc: Location = {
+      id: 'friend_beacon_' + Date.now(),
+      officialName: `${name}'s Live Location`,
+      aliases: [name],
+      coordinates: coords,
+      type: 'landmark',
+      description: `Live meetup beacon shared by ${name}`,
+      landmark: 'Live Friend Beacon'
+    };
+    handleLocationSelect(friendLoc);
+    setMapView({ center: coords, zoom: 18 });
+    setIsFollowingUser(false);
+    setIsMeetupOpen(false);
+    startNavigation();
+    setNotification({
+      message: `Navigating to ${name}'s live location!`,
+      type: 'success'
+    });
+  };
+
+  const handleFocusMapCoords = (coords: [number, number]) => {
+    setMapView({ center: coords, zoom: 18 });
+    setIsFollowingUser(false);
+    setIsMeetupOpen(false);
+  };
 
   return (
     <div className="relative w-full h-full flex flex-col overflow-hidden bg-rsu-bg">
@@ -1378,6 +1622,8 @@ export default function App() {
         onMapMove={onMapMove}
         mapRotation={mapRotation}
         setMapRotation={setMapRotation}
+        friendBeacons={friendBeacons}
+        onNavigateToFriend={handleNavigateToFriend}
       />
 
       <CompassControl 
@@ -1436,7 +1682,7 @@ export default function App() {
           }
         }}
         getCategoryIcon={getCategoryIcon}
-        onToggleChat={() => setIsChatOpen(!isChatOpen)}
+        onToggleChat={handleToggleChat}
         highlightedLocationId={highlightedLocationId}
         onHighlightLocation={setHighlightedLocationId}
       />
@@ -1447,18 +1693,49 @@ export default function App() {
         setNotification={setNotification}
         handleLocateMe={handleLocateMe}
         isFollowingUser={isFollowingUser}
-        toggleEvents={() => setIsEventsPanelOpen(!isEventsPanelOpen)}
-        toggleTimetable={() => setIsTimetableOpen(!isTimetableOpen)}
+        toggleTimetable={handleToggleTimetable}
+        toggleProfile={handleToggleProfile}
         isSignedIn={!!currentUser}
-        onAddLocationClick={handleRequestAddLocation}
-        isLocating={isLocating}
+        currentUser={currentUser}
         hasActiveSelection={!!selectedLocation}
         isPanelExpanded={isPanelExpanded}
         isTimetableOpen={isTimetableOpen}
+        isProfileOpen={isProfileOpen}
         isEventsPanelOpen={isEventsPanelOpen}
         isChatOpen={isChatOpen}
-        onToggleChat={() => setIsChatOpen(!isChatOpen)}
+        onToggleChat={handleToggleChat}
+        isMeetupOpen={isMeetupOpen}
+        toggleMeetup={handleToggleMeetup}
+        isLiveSharing={!!(activeLiveShareSession?.isActive && Date.now() < (activeLiveShareSession?.expiresAt || 0))}
+        activeFriendsCount={friendBeacons.filter(b => b.session.isActive && Date.now() < b.session.expiresAt).length}
       />
+
+      <AnimatePresence>
+        {isProfileOpen && (
+          <React.Suspense fallback={null}>
+            <ProfilePanel 
+              onClose={() => setIsProfileOpen(false)}
+              currentUser={currentUser}
+              onSignIn={() => handleSignIn(false)}
+              onSignInRedirect={() => handleSignIn(true)}
+              onSignOut={handleSignOut}
+              onOpenTimetable={() => {
+                setIsProfileOpen(false);
+                setIsEventsPanelOpen(false);
+                setIsChatOpen(false);
+                setIsTimetableOpen(true);
+                setOpenedFromProfile(true);
+              }}
+              onAddLocationClick={handleRequestAddLocation}
+              onNavigateToLocation={handleEventNavigation}
+              savedLocationsCount={savedLocationIds.length}
+              savedLocations={allLocations.filter(loc => savedLocationIds.includes(loc.id))}
+              onOpenTerms={() => { window.location.href = '/terms.html'; }}
+              onOpenPrivacy={() => { window.location.href = '/privacy.html'; }}
+            />
+          </React.Suspense>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {isEventsPanelOpen && (
@@ -1466,6 +1743,8 @@ export default function App() {
             <EventsPanel 
               onClose={() => setIsEventsPanelOpen(false)}
               onNavigateTo={handleEventNavigation}
+              currentUser={currentUser}
+              onSignIn={() => handleSignIn(false)}
             />
           </React.Suspense>
         )}
@@ -1475,7 +1754,17 @@ export default function App() {
         {isTimetableOpen && (
           <React.Suspense fallback={null}>
             <TimetablePanel 
-              onClose={() => setIsTimetableOpen(false)}
+              onClose={() => {
+                setIsTimetableOpen(false);
+                setOpenedFromProfile(false);
+              }}
+              onBack={openedFromProfile ? () => {
+                setIsTimetableOpen(false);
+                setIsEventsPanelOpen(false);
+                setIsChatOpen(false);
+                setIsProfileOpen(true);
+                setOpenedFromProfile(false);
+              } : undefined}
               onNavigateTo={handleEventNavigation}
               currentUser={currentUser}
             />
@@ -1513,8 +1802,9 @@ export default function App() {
         handleLocationSelect={handleLocationSelect}
         toggleSaveLocation={toggleSaveLocation}
         getCategoryIcon={getCategoryIcon}
-        toggleEvents={() => setIsEventsPanelOpen(!isEventsPanelOpen)}
-        toggleTimetable={() => setIsTimetableOpen(!isTimetableOpen)}
+        toggleEvents={handleToggleEvents}
+        toggleTimetable={handleToggleTimetable}
+        toggleMeetup={handleToggleMeetup}
         user={currentUser}
         onSignIn={() => handleSignIn(false)}
         onSignInRedirect={() => handleSignIn(true)}
@@ -1523,6 +1813,29 @@ export default function App() {
         onOpenPrivacy={() => { window.location.href = '/privacy.html'; }}
         onNavigateHome={() => navigate('/')}
       />
+
+      {/* Meetup & Live Location Sharing Modal */}
+      <AnimatePresence>
+        {isMeetupOpen && (
+          <React.Suspense fallback={null}>
+            <MeetupShareModal
+              isOpen={isMeetupOpen}
+              onClose={() => setIsMeetupOpen(false)}
+              currentUser={currentUser}
+              userLocation={userLocation}
+              activeSession={activeLiveShareSession}
+              setActiveSession={setActiveLiveShareSession}
+              friendBeacons={friendBeacons}
+              onAddFriendCode={handleAddFriendCode}
+              onRemoveFriendCode={handleRemoveFriendCode}
+              onNavigateToCoords={handleNavigateToFriend}
+              onFocusMapCoords={handleFocusMapCoords}
+              setNotification={setNotification}
+              onOpenSignIn={() => handleSignIn(false)}
+            />
+          </React.Suspense>
+        )}
+      </AnimatePresence>
 
       <React.Suspense fallback={null}>
         <ChatBot 
@@ -1535,7 +1848,7 @@ export default function App() {
           activeManeuvers={maneuvers}
           onRecalculate={handleRecalculate}
           isOpen={isChatOpen}
-          onOpenChange={setIsChatOpen}
+          onOpenChange={handleChatOpenChange}
           showFloatingButton={false}
         />
       </React.Suspense>
@@ -1666,40 +1979,6 @@ export default function App() {
                 </div>
               </form>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Floating Bottom Left Profile/Auth Widget */}
-      <AnimatePresence>
-        {!selectedLocation && !isNavigating && currentUser && (
-          <motion.div
-            initial={{ opacity: 0, x: -15, y: 10 }}
-            animate={{ opacity: 1, x: 0, y: 0 }}
-            exit={{ opacity: 0, x: -15, y: 15 }}
-            className="absolute left-4 bottom-6 z-30 p-2.5 pl-3.5 bg-rsu-card/90 backdrop-blur-md rounded-2xl border border-rsu-border/20 shadow-xl flex items-center gap-3 max-w-[260px] md:max-w-xs transition-colors"
-          >
-            <div className="relative flex-shrink-0">
-              <img
-                src={currentUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.displayName || 'User')}&background=0D8ABC&color=fff`}
-                alt={`${currentUser.displayName || 'User'}'s Profile`}
-                referrerPolicy="no-referrer"
-                className="w-10 h-10 rounded-full border-2 border-rsu-green shadow-sm object-cover"
-              />
-              <span className="absolute bottom-0 right-0 w-3 h-3 bg-rsu-green border-2 border-white dark:border-slate-900 rounded-full animate-pulse" />
-            </div>
-            
-            <div className="flex flex-col min-w-[100px] max-w-[140px]">
-              <span className="text-xs font-black text-rsu-navy dark:text-white truncate leading-none mb-1.5">
-                {currentUser.displayName || 'Campus User'}
-              </span>
-              <button
-                onClick={handleSignOut}
-                className="text-[9px] font-bold text-red-500 uppercase tracking-widest hover:text-red-600 hover:underline cursor-pointer text-left leading-none transition-colors"
-              >
-                Log Out
-              </button>
-            </div>
           </motion.div>
         )}
       </AnimatePresence>

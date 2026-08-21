@@ -17,6 +17,13 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'progressphilemon@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
     function isValidId(id) {
       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
@@ -110,6 +117,11 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isSignedIn() && isOwner(userId);
       allow create, update: if isSignedIn() && isOwner(userId);
+
+      // User RSVP subcollection for saved events
+      match /rsvps/{eventId} {
+        allow read, write, delete: if isSignedIn() && isOwner(userId);
+      }
     }
 
     // 3. User Sync Tracks
@@ -142,9 +154,71 @@ service cloud.firestore {
 
       allow read: if true;
       allow create: if isSignedIn() && isValidId(locationId) && isValidUserLocation(incoming());
-      allow update: if isSignedIn() && isValidId(locationId) && isOwner(existing().ownerId)
-        && incoming().ownerId == existing().ownerId && isValidUserLocation(incoming());
-      allow delete: if isSignedIn() && isValidId(locationId) && isOwner(existing().ownerId);
+      allow update: if isSignedIn() && isValidId(locationId) && (isAdmin() || isOwner(existing().ownerId))
+        && (isAdmin() || incoming().ownerId == existing().ownerId) && isValidUserLocation(incoming());
+      allow delete: if isSignedIn() && isValidId(locationId) && (isAdmin() || isOwner(existing().ownerId));
+    }
+
+    // 6. Campus Events Collection (Full Community + Admin Moderation)
+    match /events/{eventId} {
+      function isValidEvent(data) {
+        return data.id is string && data.id.size() <= 128
+          && data.title is string && data.title.size() <= 256
+          && data.description is string && data.description.size() <= 2048
+          && data.date is string && data.date.size() <= 64
+          && data.category is string && data.category.size() <= 64
+          && data.locationId is string && data.locationId.size() <= 128
+          && data.startTime is string && data.startTime.size() <= 32
+          && data.endTime is string && data.endTime.size() <= 32
+          && data.organizer is string && data.organizer.size() <= 128
+          && data.creatorId is string && data.creatorId.size() <= 128
+          && data.creatorEmail is string && data.creatorEmail.size() <= 128
+          && data.createdAt is string && data.createdAt.size() <= 64;
+      }
+
+      allow read: if true;
+      allow create: if isSignedIn() && isValidId(eventId) && isValidEvent(incoming())
+        && (incoming().creatorId == request.auth.uid || isAdmin());
+      allow update: if isSignedIn() && isValidId(eventId) && isValidEvent(incoming())
+        && (isAdmin() || isOwner(existing().creatorId));
+      // Admin can delete ANY event. Regular users can delete only their own posted events.
+      allow delete: if isSignedIn() && isValidId(eventId) && (
+        isAdmin() || (existing().keys().hasAny(['creatorId']) && isOwner(existing().creatorId))
+      );
+    }
+
+    // 7. Track Deleted Events (for overriding default static items)
+    match /deleted_events/{eventId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // 8. Ephemeral Live Location Shares for Campus Meetups
+    match /live_shares/{shareId} {
+      function isValidLiveShare(data) {
+        return data.id is string && data.id.size() <= 128
+          && data.userId == request.auth.uid
+          && data.userName is string && data.userName.size() <= 128
+          && data.coordinates is list && data.coordinates.size() == 2
+          && data.coordinates[0] is number
+          && data.coordinates[1] is number
+          && data.expiresAt is number
+          && data.isActive is bool
+          && data.createdAt is string && data.createdAt.size() <= 64
+          && data.updatedAt is string && data.updatedAt.size() <= 64;
+      }
+
+      // Read rules: Accessible to users with the specific share ID or code
+      allow get: if true;
+      allow list: if isSignedIn();
+
+      allow create: if isSignedIn() && isValidId(shareId) && isValidLiveShare(incoming());
+      allow update: if isSignedIn() && isValidId(shareId)
+        && isOwner(existing().userId) && isOwner(incoming().userId)
+        && isValidLiveShare(incoming());
+      allow delete: if isSignedIn() && isValidId(shareId) && (
+        isOwner(existing().userId) || isAdmin()
+      );
     }
   }
 }

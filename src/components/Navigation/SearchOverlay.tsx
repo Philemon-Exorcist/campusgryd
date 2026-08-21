@@ -119,8 +119,9 @@ export const SearchOverlay: React.FC<SearchOverlayProps> = ({
             <div className="flex items-center px-4 py-2.5">
               <button 
                 onClick={(e) => { e.stopPropagation(); onToggleChat(); }}
-                className="mr-3 p-1.5 bg-rsu-navy text-white rounded-lg hover:bg-rsu-orange transition-colors relative group"
-                title="Open AI Assistant"
+                className="mr-3 p-1.5 bg-rsu-navy text-white rounded-lg hover:bg-rsu-orange transition-colors relative group cursor-pointer"
+                title="Open Navi-bot (AI Guide)"
+                aria-label="Open Navi-bot"
               >
                 <MessageSquare size={16} className="group-hover:scale-110 transition-transform" />
                 <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-rsu-orange rounded-full border border-white" />

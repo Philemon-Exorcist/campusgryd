@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Bookmark, Trash2, History, GraduationCap, Calendar, BookOpen, Home } from 'lucide-react';
+import { X, Bookmark, Trash2, History, GraduationCap, Calendar, BookOpen, Home, Radio } from 'lucide-react';
 import { Location } from '../../types';
 
 interface MenuDrawerProps {
@@ -13,6 +13,7 @@ interface MenuDrawerProps {
   getCategoryIcon: (type: string) => React.ReactNode;
   toggleEvents: () => void;
   toggleTimetable: () => void;
+  toggleMeetup?: () => void;
   user: any;
   onSignIn: () => void;
   onSignInRedirect?: () => void;
@@ -32,6 +33,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
   getCategoryIcon,
   toggleEvents,
   toggleTimetable,
+  toggleMeetup,
   user,
   onSignIn,
   onSignInRedirect,
@@ -144,19 +146,41 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
                   toggleTimetable();
                   setIsMenuOpen(false);
                 }}
-                className="w-full flex items-center p-5 bg-rsu-orange text-white rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-95 group overflow-hidden relative"
+                className="w-full flex items-center p-4 bg-rsu-orange text-white rounded-2xl shadow-md hover:shadow-lg transition-all active:scale-95 group overflow-hidden relative"
               >
                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-                  <BookOpen size={80} strokeWidth={3} />
+                  <BookOpen size={70} strokeWidth={3} />
                 </div>
-                <div className="p-4 bg-white/20 rounded-2xl mr-4 shadow-inner">
-                  <BookOpen size={30} />
+                <div className="p-3 bg-white/20 rounded-2xl mr-3 shadow-inner">
+                  <BookOpen size={24} />
                 </div>
                 <div className="text-left relative z-10">
-                  <div className="font-black italic text-lg tracking-tight uppercase leading-tight">SMART SYNC</div>
-                  <div className="text-[10px] font-bold opacity-80 uppercase tracking-widest leading-none mt-1">AI Timetable & Calendar</div>
+                  <div className="font-black italic text-base tracking-tight uppercase leading-tight">SMART SYNC</div>
+                  <div className="text-[10px] font-bold opacity-80 uppercase tracking-widest leading-none mt-0.5">AI Timetable & Calendar</div>
                 </div>
               </button>
+
+              {/* Campus Meetups & Live Share Quick Access */}
+              {toggleMeetup && (
+                <button
+                  onClick={() => {
+                    toggleMeetup();
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center p-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl shadow-md hover:shadow-lg transition-all active:scale-95 group overflow-hidden relative"
+                >
+                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+                    <Radio size={70} strokeWidth={3} />
+                  </div>
+                  <div className="p-3 bg-white/20 rounded-2xl mr-3 shadow-inner">
+                    <Radio size={24} />
+                  </div>
+                  <div className="text-left relative z-10">
+                    <div className="font-black italic text-base tracking-tight uppercase leading-tight">CAMPUS MEETUPS</div>
+                    <div className="text-[10px] font-bold opacity-80 uppercase tracking-widest leading-none mt-0.5">Opt-In Real-Time Friend Beacon</div>
+                  </div>
+                </button>
+              )}
 
               <div className="pt-4 pb-2">
                 <div className="text-[10px] font-black text-rsu-navy/30 uppercase tracking-[0.2em] mb-4 px-2">Campus Tools</div>

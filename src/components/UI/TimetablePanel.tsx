@@ -14,7 +14,8 @@ import {
   Trash2,
   ExternalLink,
   BookOpen,
-  Loader2
+  Loader2,
+  ArrowLeft
 } from 'lucide-react';
 import { collection, query, where, getDocs, addDoc, doc, updateDoc, deleteDoc, orderBy } from 'firebase/firestore';
 import { signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
@@ -122,6 +123,7 @@ interface TimetablePanelProps {
   onClose: () => void;
   onNavigateTo: (locationId: string) => void;
   currentUser: User | null;
+  onBack?: () => void;
 }
 
 const RSU_FACULTIES = [
@@ -138,7 +140,7 @@ const RSU_DEPARTMENTS: Record<string, string[]> = {
   "Law": ["Public Law", "Private Law", "Commercial Law"],
 };
 
-export const TimetablePanel: React.FC<TimetablePanelProps> = ({ onClose, onNavigateTo, currentUser }) => {
+export const TimetablePanel: React.FC<TimetablePanelProps> = ({ onClose, onNavigateTo, currentUser, onBack }) => {
   const [view, setView] = useState<'browse' | 'setup' | 'entry_mode' | 'create' | 'manual' | 'review'>('browse');
   const [timetables, setTimetables] = useState<Timetable[]>([]);
   const [selectedTimetable, setSelectedTimetable] = useState<Timetable | null>(null);
@@ -588,15 +590,26 @@ export const TimetablePanel: React.FC<TimetablePanelProps> = ({ onClose, onNavig
       exit={{ opacity: 0, x: '100%' }}
       className="fixed inset-0 z-[100] bg-rsu-bg md:inset-auto md:right-4 md:bottom-4 md:w-96 md:h-[700px] md:max-h-[calc(100vh-32px)] md:rounded-3xl shadow-2xl flex flex-col border border-rsu-border/20"
     >
-      <div className="p-6 border-b border-rsu-border/20 flex items-center justify-between bg-rsu-navy text-white md:rounded-t-3xl shadow-lg">
-        <div className="flex items-center gap-3">
+      <div className="p-5 sm:p-6 border-b border-rsu-border/20 flex items-center justify-between bg-rsu-navy text-white md:rounded-t-3xl shadow-lg">
+        <div className="flex items-center gap-2.5">
+          {onBack && (
+            <button 
+              onClick={onBack}
+              className="p-1.5 -ml-1 hover:bg-white/10 rounded-xl transition-all cursor-pointer flex items-center gap-1 group"
+              title="Back to Profile"
+              aria-label="Back to Profile"
+            >
+              <ArrowLeft className="w-5 h-5 text-rsu-orange group-hover:-translate-x-0.5 transition-transform" />
+              <span className="text-xs font-bold hidden sm:inline text-white/90">Back</span>
+            </button>
+          )}
           <BookOpen className="w-6 h-6 text-rsu-orange" />
           <div>
             <h2 className="text-xl font-black italic tracking-tighter uppercase">Timetables</h2>
             <p className="text-[10px] opacity-70 font-bold uppercase tracking-widest leading-none">Smart Academic Sync</p>
           </div>
         </div>
-        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors"><X className="w-6 h-6" /></button>
+        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer" aria-label="Close Timetable"><X className="w-6 h-6" /></button>
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar">

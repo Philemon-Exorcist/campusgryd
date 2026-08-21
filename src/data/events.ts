@@ -1,15 +1,31 @@
+import { User } from 'firebase/auth';
 
 export interface CampusEvent {
   id: string;
   title: string;
   description: string;
-  date: string; // ISO format
+  date: string; // YYYY-MM-DD
   category: 'academic' | 'social' | 'sports' | 'conference' | 'other';
   locationId: string;
   startTime: string;
   endTime: string;
   organizer: string;
+  creatorId?: string;
+  creatorEmail?: string;
+  createdAt?: string;
+  isCustom?: boolean;
 }
+
+export const ADMIN_EMAILS = [
+  'progressphilemon@gmail.com',
+  'admin@rsu.edu.ng'
+];
+
+export const isUserAdmin = (user?: User | { email?: string | null } | null): boolean => {
+  if (!user || !user.email) return false;
+  const normalizedEmail = user.email.trim().toLowerCase();
+  return ADMIN_EMAILS.includes(normalizedEmail);
+};
 
 export const campusEvents: CampusEvent[] = [
   {
@@ -21,7 +37,8 @@ export const campusEvents: CampusEvent[] = [
     locationId: 'sports_complex',
     startTime: '14:00',
     endTime: '17:00',
-    organizer: 'RSU Sports Directorate'
+    organizer: 'RSU Sports Directorate',
+    creatorEmail: 'sports@rsu.edu.ng'
   },
   {
     id: 'e2',
@@ -32,7 +49,8 @@ export const campusEvents: CampusEvent[] = [
     locationId: 'pg_school',
     startTime: '09:00',
     endTime: '16:00',
-    organizer: 'Faculty of Engineering'
+    organizer: 'Faculty of Engineering',
+    creatorEmail: 'engineering@rsu.edu.ng'
   },
   {
     id: 'e3',
@@ -43,7 +61,8 @@ export const campusEvents: CampusEvent[] = [
     locationId: 'convocation_arena',
     startTime: '10:00',
     endTime: '13:00',
-    organizer: 'RSU Registry'
+    organizer: 'RSU Registry',
+    creatorEmail: 'registry@rsu.edu.ng'
   },
   {
     id: 'e4',
@@ -54,7 +73,8 @@ export const campusEvents: CampusEvent[] = [
     locationId: 'amphitheatre',
     startTime: '18:00',
     endTime: '22:00',
-    organizer: 'Student Union Government'
+    organizer: 'Student Union Government',
+    creatorEmail: 'sug@rsu.edu.ng'
   },
   {
     id: 'e5',
@@ -65,6 +85,7 @@ export const campusEvents: CampusEvent[] = [
     locationId: 'old_senate',
     startTime: '11:00',
     endTime: '13:00',
-    organizer: 'Environmental Sciences'
+    organizer: 'Environmental Sciences',
+    creatorEmail: 'enviro@rsu.edu.ng'
   }
 ];

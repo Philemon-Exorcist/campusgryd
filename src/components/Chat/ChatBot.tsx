@@ -50,7 +50,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: "Hi! I'm your RSU Campus Navigator. Where would you like to go today?",
+      text: "Hi! I'm Navi-bot, your RSU Campus Guide. Where would you like to go or find on campus today?",
       sender: 'bot',
       timestamp: new Date()
     }
@@ -150,10 +150,10 @@ export const ChatBot: React.FC<ChatBotProps> = ({
                   <Bot size={24} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm">RSU Navi-Bot</h3>
+                  <h3 className="font-bold text-sm">RSU Navi-bot</h3>
                   <div className="flex items-center gap-1">
                     <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                    <span className="text-[10px] text-white/70">Online</span>
+                    <span className="text-[10px] text-white/70">Online • AI Guide</span>
                   </div>
                 </div>
               </div>
@@ -245,8 +245,8 @@ export const ChatBot: React.FC<ChatBotProps> = ({
               ))}
               {isLoading && (
                 <div className="flex items-center gap-2 text-gray-400">
-                  <Bot size={16} className="animate-bounce" />
-                  <span className="text-xs italic">Navi-Bot is thinking...</span>
+                  <Bot size={16} className="animate-bounce text-rsu-orange" />
+                  <span className="text-xs italic font-medium">Navi-bot is thinking...</span>
                 </div>
               )}
               <div ref={messagesEndRef} />

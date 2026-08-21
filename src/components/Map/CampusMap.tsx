@@ -1,7 +1,7 @@
 import React from 'react';
 import { MapContainer, TileLayer, Marker, Polyline, Polygon, ZoomControl, useMap, Popup } from 'react-leaflet';
 import L from 'leaflet';
-import { Location } from '../../types';
+import { Location, FriendBeacon } from '../../types';
 import { cn } from '../../lib/utils';
 import { RSU_CENTER, DEFAULT_ZOOM } from '../../constants';
 
@@ -19,6 +19,8 @@ interface CampusMapProps {
   createCustomIcon: (type: string, isActive: boolean, isHighlighted?: boolean) => L.DivIcon;
   highlightedLocationId?: string | null;
   searchResults?: Location[];
+  friendBeacons?: FriendBeacon[];
+  onNavigateToFriend?: (coords: [number, number], name: string) => void;
 }
 
 function MapController({ center, zoom, onMapMove }: { center: [number, number], zoom: number, onMapMove: (center: [number, number], zoom: number) => void }) {
@@ -363,6 +365,32 @@ const navEndIcon = L.divIcon({
   iconAnchor: [24, 48]
 });
 
+const createFriendMarkerIcon = (name: string, statusNote?: string) => {
+  const initial = (name || 'Friend').charAt(0).toUpperCase();
+  const firstName = (name || 'Friend').split(' ')[0];
+  const escapedName = firstName.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  
+  return L.divIcon({
+    className: 'custom-friend-beacon-icon',
+    html: `
+      <div class="relative flex flex-col items-center cursor-pointer pointer-events-auto" style="transform: translate3d(0,0,0);">
+        <div class="relative flex items-center justify-center">
+          <div class="absolute -inset-2 bg-emerald-500/30 rounded-full animate-ping"></div>
+          <div class="w-9 h-9 rounded-full bg-emerald-600 border-2 border-white shadow-lg flex items-center justify-center text-white font-black text-xs">
+            ${initial}
+          </div>
+          <div class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-400 border-2 border-white rounded-full"></div>
+        </div>
+        <div class="mt-1 px-2 py-0.5 bg-slate-900/90 backdrop-blur-sm text-white text-[10px] font-bold rounded-md whitespace-nowrap shadow-md border border-emerald-500/50">
+          ${escapedName}
+        </div>
+      </div>
+    `,
+    iconSize: [44, 52],
+    iconAnchor: [22, 26]
+  });
+};
+
 export const CampusMap = React.memo<CampusMapProps & { 
   onMapMove: (center: [number, number], zoom: number) => void;
   mapRotation: number;
@@ -381,6 +409,8 @@ export const CampusMap = React.memo<CampusMapProps & {
   createCustomIcon,
   highlightedLocationId,
   searchResults,
+  friendBeacons,
+  onNavigateToFriend,
   onMapMove,
   mapRotation,
   setMapRotation
@@ -479,6 +509,52 @@ export const CampusMap = React.memo<CampusMapProps & {
           icon={userMarkerIcon}
         />
       )}
+
+      {/* Live Friend Beacons */}
+      {friendBeacons && friendBeacons.filter(f => f.session.isActive && Date.now() <= f.session.expiresAt).map(({ session, distanceMeters }) => (
+        <Marker
+          key={`friend-${session.id}`}
+          position={session.coordinates}
+          icon={createFriendMarkerIcon(session.userName, session.statusNote)}
+        >
+          <Popup className="rsu-popup">
+            <div className="p-3 min-w-[220px]">
+              <div className="flex items-center gap-2 mb-1.5">
+                <div className="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center font-black text-xs shadow-sm">
+                  {session.userName.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h4 className="font-bold text-xs text-slate-900 dark:text-white leading-none">
+                    {session.userName}
+                  </h4>
+                  <span className="text-[9px] font-mono text-emerald-600 dark:text-emerald-400 font-bold">
+                    Live Campus Beacon ({session.id})
+                  </span>
+                </div>
+              </div>
+
+              {session.statusNote && (
+                <p className="text-[11px] text-slate-600 dark:text-slate-300 bg-emerald-50 dark:bg-emerald-950/40 p-2 rounded-lg mb-2 border border-emerald-100 dark:border-emerald-900/60 font-medium">
+                  &ldquo;{session.statusNote}&rdquo;
+                </p>
+              )}
+
+              {distanceMeters !== undefined && (
+                <p className="text-[10px] font-mono text-slate-500 dark:text-slate-400 mb-2.5">
+                  Distance: <strong>{distanceMeters < 1000 ? `${Math.round(distanceMeters)}m` : `${(distanceMeters / 1000).toFixed(1)}km`}</strong>
+                </p>
+              )}
+
+              <button
+                onClick={() => onNavigateToFriend?.(session.coordinates, session.userName)}
+                className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors shadow-sm cursor-pointer flex items-center justify-center gap-1"
+              >
+                <span>Walk to {session.userName.split(' ')[0]}</span>
+              </button>
+            </div>
+          </Popup>
+        </Marker>
+      ))}
 
       {/* Base Layer for Polygons */}
       {polygonFeatures.map((feature: any, idx: number) => {

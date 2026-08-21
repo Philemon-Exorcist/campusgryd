@@ -40,3 +40,24 @@ export interface RouteOption {
   path: [number, number][];
   maneuvers: Maneuver[];
 }
+
+export interface LiveShareSession {
+  id: string; // e.g. "RSU-7X9B"
+  userId: string;
+  userName: string;
+  userPhoto?: string;
+  userEmail?: string;
+  coordinates: [number, number]; // [lat, lng]
+  statusNote?: string; // e.g., "Outside Law Faculty canteen"
+  expiresAt: number; // unix timestamp ms
+  isActive: boolean;
+  createdAt: string; // ISO string
+  updatedAt: string; // ISO string
+}
+
+export interface FriendBeacon {
+  session: LiveShareSession;
+  distanceMeters?: number;
+  lastSeenText?: string;
+}
+

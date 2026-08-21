@@ -62,12 +62,76 @@
         "createdAt": { "type": "string" }
       },
       "required": ["id", "officialName", "aliases", "coordinates", "type", "ownerId", "createdAt"]
+    },
+    "CampusEvent": {
+      "title": "Campus Event",
+      "description": "Official and student community posted events, lectures, matches, and ceremonies.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "date": { "type": "string" },
+        "category": { "type": "string", "enum": ["academic", "social", "sports", "conference", "other"] },
+        "locationId": { "type": "string" },
+        "startTime": { "type": "string" },
+        "endTime": { "type": "string" },
+        "organizer": { "type": "string" },
+        "creatorId": { "type": "string" },
+        "creatorEmail": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "title", "description", "date", "category", "locationId", "startTime", "endTime", "creatorId", "createdAt"]
+    },
+    "UserRSVP": {
+      "title": "User Event RSVP",
+      "description": "RSVP registration for a campus event by a student or user.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "eventId": { "type": "string" },
+        "eventTitle": { "type": "string" },
+        "eventDate": { "type": "string" },
+        "eventLocationId": { "type": "string" },
+        "eventStartTime": { "type": "string" },
+        "eventEndTime": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "eventId", "createdAt"]
+    },
+    "LiveShareSession": {
+      "title": "Real-Time Location Meetup Share",
+      "description": "Opt-in temporary live location beacon shared with friends for campus meetups.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userPhoto": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "coordinates": { "type": "array" },
+        "statusNote": { "type": "string" },
+        "expiresAt": { "type": "number" },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "userName", "coordinates", "expiresAt", "isActive", "createdAt", "updatedAt"]
     }
   },
   "firestore": {
     "/users/{userId}": {
       "schema": "User",
       "description": "User profiles and settings."
+    },
+    "/users/{userId}/rsvps/{eventId}": {
+      "schema": "UserRSVP",
+      "description": "User RSVP list of saved events."
+    },
+    "/live_shares/{shareId}": {
+      "schema": "LiveShareSession",
+      "description": "Opt-in ephemeral live location sharing sessions for student meetups."
     },
     "/timetables/{timetableId}": {
       "schema": "Timetable",
@@ -80,6 +144,10 @@
     "/user_locations/{locationId}": {
       "schema": "UserLocation",
       "description": "Community shared student-defined landmarks and places."
+    },
+    "/events/{eventId}": {
+      "schema": "CampusEvent",
+      "description": "Campus events posted and moderated by students and administrators."
     }
   }
 }
