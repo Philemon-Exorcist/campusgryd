@@ -1,0 +1,6 @@
+{
+  "summary": "Security audit and remediation plan to eliminate exposed client API keys, move all Gemini AI calls and voice synthesis to protected backend endpoints with rate limiting, and provide step-by-step guidance for reinstating the suspended Google Cloud project.",
+  "updatedAt": "2026-10-15T10:29:45.411333332Z",
+  "requestFeedback": true,
+  "userFacing": true
+}

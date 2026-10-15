@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Fuse from 'fuse.js';
 import { motion, AnimatePresence } from 'motion/react';
-import { GoogleGenAI, Modality } from "@google/genai";
 import { 
   X, 
   Info
@@ -849,72 +848,52 @@ export default function App() {
     recognition.start();
   };
 
-  const getAiInstance = React.useCallback(() => {
-    const key = (typeof process !== "undefined" && process?.env?.VITE_GEMINI_API_KEY) ||
-                (typeof process !== "undefined" && process?.env?.GEMINI_API_KEY) ||
-                (import.meta.env?.VITE_GEMINI_API_KEY) ||
-                (import.meta.env?.GEMINI_API_KEY);
-    if (!key || key === 'undefined' || key === '') return null;
-    try {
-      return new GoogleGenAI({ apiKey: key });
-    } catch (error) {
-      console.error("Failed to create GoogleGenAI instance in App:", error);
-      return null;
-    }
-  }, []);
-
   const playVoiceDirections = React.useCallback(async (text: string) => {
     if (isSpeaking) return;
-    
-    const ai = getAiInstance();
     setIsSpeaking(true);
-    
-    if (isOffline || !ai) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.onend = () => setIsSpeaking(false);
-      utterance.onerror = () => setIsSpeaking(false);
-      window.speechSynthesis.speak(utterance);
-      return;
-    }
-    try {
-      const response = await ai.models.generateContent({
-        model: "gemini-3.1-flash-tts-preview",
-        contents: [{ parts: [{ text: `Say clearly and helpfully: ${text}` }] }],
-        config: {
-          responseModalities: [Modality.AUDIO],
-          speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } } },
-        },
-      });
-      const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-      if (base64Audio) {
-        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-        const binaryString = atob(base64Audio);
-        const len = binaryString.length;
-        const bytes = new Int16Array(len / 2);
-        for (let i = 0; i < len; i += 2) {
-          bytes[i / 2] = (binaryString.charCodeAt(i) & 0xFF) | ((binaryString.charCodeAt(i + 1) & 0xFF) << 8);
-        }
-        const float32Data = new Float32Array(bytes.length);
-        for (let i = 0; i < bytes.length; i++) {
-          float32Data[i] = bytes[i] / 32768.0;
-        }
-        const buffer = audioContext.createBuffer(1, float32Data.length, 24000);
-        buffer.getChannelData(0).set(float32Data);
-        const source = audioContext.createBufferSource();
-        source.buffer = buffer;
-        source.connect(audioContext.destination);
-        source.onended = () => {
-          setIsSpeaking(false);
-          audioContext.close();
-        };
-        source.start();
+
+    const speakNativeFallback = (phrase: string) => {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(phrase);
+        utterance.onend = () => setIsSpeaking(false);
+        utterance.onerror = () => setIsSpeaking(false);
+        window.speechSynthesis.speak(utterance);
       } else {
         setIsSpeaking(false);
       }
-    } catch (error) {
-      setIsSpeaking(false);
+    };
+
+    if (isOffline) {
+      speakNativeFallback(text);
+      return;
     }
-  }, [isSpeaking, isOffline, getAiInstance]);
+
+    try {
+      const response = await fetch('/api/tts/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: text.slice(0, 500), voiceName: 'Kore' }),
+      });
+
+      if (!response.ok) {
+        speakNativeFallback(text);
+        return;
+      }
+
+      const data = await response.json();
+      if (data?.audioBase64) {
+        const audio = new Audio(`data:audio/wav;base64,${data.audioBase64}`);
+        audio.onended = () => setIsSpeaking(false);
+        audio.onerror = () => speakNativeFallback(text);
+        audio.play().catch(() => speakNativeFallback(text));
+      } else {
+        speakNativeFallback(text);
+      }
+    } catch {
+      speakNativeFallback(text);
+    }
+  }, [isSpeaking, isOffline]);
 
   const fuse = useMemo(() => {
     return new Fuse(allLocations, {

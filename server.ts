@@ -8,6 +8,7 @@ import { syncToGoogleCalendar, deleteFromGoogleCalendar } from "./src/services/s
 import { handleCampusChat, parseCampusIntent } from "./src/services/server/chatService";
 import cron from "node-cron";
 import admin from "firebase-admin";
+import { GoogleGenAI } from "@google/genai";
 
 // Helper to validate and clean PEM private keys safely without triggering OpenSSL decode exceptions
 function validateAndCleanPrivateKey(key: string): string | null {
@@ -103,12 +104,67 @@ function initFirebaseAdmin() {
 
 initFirebaseAdmin();
 
-const upload = multer({ storage: multer.memoryStorage() });
+// Strict payload caps and memory limits
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB max file upload
+    files: 1
+  }
+});
 
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
+
+// In-Memory IP Sliding Window Rate Limiter
+interface RateLimitRecord {
+  count: number;
+  resetAt: number;
+}
+const rateLimitStore = new Map<string, RateLimitRecord>();
+
+function createRateLimiter(options: { maxRequests: number; windowMs: number; name: string }) {
+  return (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const rawIp = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "127.0.0.1";
+    const ip = (Array.isArray(rawIp) ? rawIp[0] : rawIp.split(",")[0]).trim();
+    const key = `${options.name}:${ip}`;
+    const now = Date.now();
+
+    const record = rateLimitStore.get(key);
+    if (!record || now > record.resetAt) {
+      rateLimitStore.set(key, { count: 1, resetAt: now + options.windowMs });
+      return next();
+    }
+
+    if (record.count >= options.maxRequests) {
+      const retryAfterSeconds = Math.max(1, Math.ceil((record.resetAt - now) / 1000));
+      res.setHeader("Retry-After", retryAfterSeconds);
+      return res.status(429).json({
+        error: `Rate limit exceeded for ${options.name}. Maximum ${options.maxRequests} requests per minute permitted. Please wait ${retryAfterSeconds}s before retrying.`
+      });
+    }
+
+    record.count++;
+    return next();
+  };
+}
+
+// Clean up expired rate-limit records periodically
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, record] of rateLimitStore.entries()) {
+    if (now > record.resetAt) {
+      rateLimitStore.delete(key);
+    }
+  }
+}, 3 * 60 * 1000);
+
+// Endpoint-specific Rate Limiters
+const chatLimiter = createRateLimiter({ name: "chat", maxRequests: 30, windowMs: 60 * 1000 });
+const ttsLimiter = createRateLimiter({ name: "tts", maxRequests: 20, windowMs: 60 * 1000 });
+const timetableLimiter = createRateLimiter({ name: "timetable", maxRequests: 10, windowMs: 60 * 1000 });
 
 // Daily Briefing Cron (7:00 AM) - only start if not in a serverless function, e.g., on Cloud Run
 if (!process.env.VERCEL) {
@@ -153,34 +209,108 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Chat Intent API
-app.post("/api/chat/intent", async (req, res) => {
+// Protected Chat Intent API
+app.post("/api/chat/intent", chatLimiter, async (req, res) => {
   console.log("POST /api/chat/intent");
   try {
     const { message, locations, timetable, events } = req.body;
-    const result = await parseCampusIntent(message, locations, timetable, events);
+    if (!message || typeof message !== "string") {
+      return res.status(400).json({ error: "Missing or invalid 'message' string in request body" });
+    }
+    if (message.length > 1000) {
+      return res.status(400).json({ error: "Message length exceeds maximum limit of 1000 characters" });
+    }
+    const result = await parseCampusIntent(message, locations || [], timetable, events);
     res.json(result);
   } catch (error: any) {
     console.error("Intent error:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message || "Failed to parse campus intent" });
   }
 });
 
-// Chat Response API
-app.post("/api/chat/response", async (req, res) => {
+// Protected Chat Response API
+app.post("/api/chat/response", chatLimiter, async (req, res) => {
   console.log("POST /api/chat/response");
   try {
     const { message, context, locations } = req.body;
-    const result = await handleCampusChat(message, context, locations);
+    if (message && typeof message === "string" && message.length > 1000) {
+      return res.status(400).json({ error: "Message length exceeds maximum limit of 1000 characters" });
+    }
+    const result = await handleCampusChat(message || "", context || {}, locations || []);
     res.json({ text: result });
   } catch (error: any) {
     console.error("Chat error:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message || "Failed to generate chat response" });
   }
 });
 
-// Timetable Parsing API
-app.post("/api/timetable/parse", upload.single("file"), async (req, res) => {
+// Protected Server-Side Text-To-Speech (TTS) API
+app.post("/api/tts/generate", ttsLimiter, async (req, res) => {
+  console.log("POST /api/tts/generate");
+  try {
+    const { text, voiceName = "Kore" } = req.body;
+    if (!text || typeof text !== "string") {
+      return res.status(400).json({ error: "Missing or invalid 'text' parameter in request body" });
+    }
+    const cleanText = text.trim();
+    if (cleanText.length === 0) {
+      return res.status(400).json({ error: "Text string cannot be empty" });
+    }
+    if (cleanText.length > 500) {
+      return res.status(400).json({ error: "Text length exceeds maximum allowed limit of 500 characters" });
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(503).json({ error: "Server TTS unavailable: GEMINI_API_KEY is not configured on the backend" });
+    }
+
+    const ai = new GoogleGenAI({
+      apiKey,
+      httpOptions: {
+        headers: {
+          "User-Agent": "aistudio-build",
+        },
+      },
+    });
+
+    const safeVoice = ["Puck", "Charon", "Kore", "Fenrir", "Zephyr"].includes(voiceName) ? voiceName : "Kore";
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.8-flash-lite-tts",
+      contents: [
+        {
+          text: `Say clearly and helpfully: ${cleanText}`,
+        },
+      ],
+      config: {
+        responseModalities: ["AUDIO"],
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: { voiceName: safeVoice },
+          },
+        },
+      },
+    });
+
+    const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+    if (!base64Audio) {
+      return res.status(502).json({ error: "TTS model did not return synthesized audio" });
+    }
+
+    res.json({
+      success: true,
+      audioBase64: base64Audio,
+      format: "audio/wav",
+    });
+  } catch (error: any) {
+    console.error("TTS generation error:", error);
+    res.status(500).json({ error: error.message || "Failed to generate speech audio" });
+  }
+});
+
+// Protected Timetable Parsing API
+app.post("/api/timetable/parse", timetableLimiter, upload.single("file"), async (req, res) => {
   console.log("POST /api/timetable/parse - Start");
   try {
     if (!req.file) {

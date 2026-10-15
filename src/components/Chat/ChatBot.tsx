@@ -69,21 +69,14 @@ export const ChatBot: React.FC<ChatBotProps> = ({
 
   useEffect(() => {
     const checkApiKey = async () => {
-      const clientKey = (import.meta.env?.VITE_GEMINI_API_KEY) || (import.meta.env?.GEMINI_API_KEY);
-      if (clientKey && clientKey !== 'undefined' && clientKey !== '') {
-        setIsGeminiKeyMissing(false);
-        return;
-      }
       try {
         const res = await fetch('/api/health');
         if (res.ok) {
           const data = await res.json();
-          if (!data.hasGeminiKey) {
-            setIsGeminiKeyMissing(true);
-          }
+          setIsGeminiKeyMissing(!data.hasGeminiKey);
         }
       } catch (e) {
-        console.error("API key validation failed:", e);
+        console.error("API health check failed:", e);
       }
     };
     checkApiKey();

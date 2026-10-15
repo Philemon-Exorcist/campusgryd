@@ -67,7 +67,7 @@ export async function handleCampusChat(message: string, context: any, locations:
   `;
 
   const response = await ai.models.generateContent({
-    model: "gemini-3.5-flash",
+    model: "gemini-3.8-flash",
     contents: prompt,
   });
 
@@ -152,7 +152,7 @@ export async function parseCampusIntent(
   `;
 
   const response = await ai.models.generateContent({
-    model: "gemini-3.5-flash",
+    model: "gemini-3.8-flash",
     contents: prompt,
     config: {
       responseMimeType: "application/json"

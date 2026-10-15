@@ -1,4 +1,3 @@
-import { GoogleGenAI } from "@google/genai";
 import { Location } from "../types";
 
 export interface ChatIntent {
@@ -15,22 +14,6 @@ export class GeminiChatService {
 
   constructor(locations: Location[]) {
     this.locations = locations;
-  }
-
-  private getAi(): GoogleGenAI | null {
-    const key = (typeof process !== "undefined" && process?.env?.GEMINI_API_KEY) ||
-                (import.meta.env?.VITE_GEMINI_API_KEY) ||
-                (import.meta.env?.GEMINI_API_KEY);
-    if (!key || key === 'undefined' || key === '') {
-      console.warn("GEMINI_API_KEY is missing");
-      return null;
-    }
-    try {
-      return new GoogleGenAI({ apiKey: key });
-    } catch (error) {
-      console.error("Gemini context creation failed:", error);
-      return null;
-    }
   }
 
   async parseIntent(message: string, timetable?: any[], events?: any[]): Promise<ChatIntent> {

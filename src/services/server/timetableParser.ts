@@ -64,7 +64,7 @@ Rules for extraction:
   try {
     console.log(`Phase: AI Vision parsing started for ${mimeType}`);
     result = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-3.8-flash",
       contents: {
         parts: [
           { text: prompt },
