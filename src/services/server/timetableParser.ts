@@ -63,24 +63,46 @@ Rules for extraction:
   let result;
   try {
     console.log(`Phase: AI Vision parsing started for ${mimeType}`);
-    result = await ai.models.generateContent({
-      model: "gemini-3.8-flash",
-      contents: {
-        parts: [
-          { text: prompt },
-          {
-            inlineData: {
-              data: fileBuffer.toString("base64"),
-              mimeType
+    try {
+      result = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: {
+          parts: [
+            { text: prompt },
+            {
+              inlineData: {
+                data: fileBuffer.toString("base64"),
+                mimeType
+              }
             }
-          }
-        ]
-      },
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: timetableSchema
-      }
-    });
+          ]
+        },
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: timetableSchema
+        }
+      });
+    } catch (primaryErr: any) {
+      console.warn("Timetable parser primary model fallback:", primaryErr?.message || primaryErr);
+      result = await ai.models.generateContent({
+        model: "gemini-3.8-flash",
+        contents: {
+          parts: [
+            { text: prompt },
+            {
+              inlineData: {
+                data: fileBuffer.toString("base64"),
+                mimeType
+              }
+            }
+          ]
+        },
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: timetableSchema
+        }
+      });
+    }
   } catch (err: any) {
     console.error("Gemini API direct error:", err);
     throw new Error(`AI Service Error: ${err.message || 'The AI model could not process this request. This might be due to model availability or file issues.'}`);

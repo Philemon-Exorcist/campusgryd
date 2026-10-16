@@ -66,10 +66,19 @@ export async function handleCampusChat(message: string, context: any, locations:
     User says: "${message}"
   `;
 
-  const response = await ai.models.generateContent({
-    model: "gemini-3.8-flash",
-    contents: prompt,
-  });
+  let response;
+  try {
+    response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    });
+  } catch (err: any) {
+    console.warn("Primary model fallback triggered:", err?.message || err);
+    response = await ai.models.generateContent({
+      model: "gemini-3.8-flash",
+      contents: prompt,
+    });
+  }
 
   return response.text;
 }
@@ -151,13 +160,25 @@ export async function parseCampusIntent(
     USER MESSAGE: "${message}"
   `;
 
-  const response = await ai.models.generateContent({
-    model: "gemini-3.8-flash",
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json"
-    }
-  });
+  let response;
+  try {
+    response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json"
+      }
+    });
+  } catch (err: any) {
+    console.warn("Intent primary model fallback triggered:", err?.message || err);
+    response = await ai.models.generateContent({
+      model: "gemini-3.8-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json"
+      }
+    });
+  }
 
   const text = response.text || "{}";
   try {
