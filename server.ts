@@ -361,6 +361,133 @@ app.post("/api/calendar/delete", async (req, res) => {
   }
 });
 
+// Administrative Deletion Endpoints (Guarantees App Owner / Admin Deletion Authority)
+const APP_OWNER_EMAIL = "progressphilemon@gmail.com";
+const ADMIN_EMAILS = [APP_OWNER_EMAIL, "admin@rsu.edu.ng"];
+
+app.post("/api/admin/timetable/delete", async (req, res) => {
+  console.log("POST /api/admin/timetable/delete");
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Missing authorization token" });
+    }
+    const token = authHeader.split("Bearer ")[1];
+    let userEmail = "";
+    let userId = "";
+
+    try {
+      const decoded = await admin.auth().verifyIdToken(token);
+      userEmail = (decoded.email || "").toLowerCase().trim();
+      userId = decoded.uid;
+    } catch (e: any) {
+      return res.status(401).json({ error: "Invalid authentication token: " + e.message });
+    }
+
+    const { timetableId } = req.body;
+    if (!timetableId) {
+      return res.status(400).json({ error: "Missing timetableId" });
+    }
+
+    const db = admin.firestore();
+    const timetableRef = db.collection("timetables").doc(timetableId);
+    const docSnap = await timetableRef.get();
+
+    const isOwner = userEmail === APP_OWNER_EMAIL.toLowerCase();
+    const isAdmin = isOwner || ADMIN_EMAILS.includes(userEmail);
+
+    if (docSnap.exists) {
+      const data = docSnap.data() || {};
+      const isCreator = data.creatorId === userId || data.ownerId === userId || (data.creatorEmail && data.creatorEmail.toLowerCase() === userEmail);
+
+      if (!isAdmin && !isCreator) {
+        return res.status(403).json({ error: "Permission denied: Only the creator or app owner can delete this timetable." });
+      }
+
+      // Batch delete slots subcollection
+      try {
+        const slotsSnapshot = await timetableRef.collection("slots").get();
+        const batch = db.batch();
+        slotsSnapshot.docs.forEach(d => batch.delete(d.ref));
+        batch.delete(timetableRef);
+        await batch.commit();
+      } catch (err: any) {
+        await timetableRef.delete();
+      }
+    } else {
+      // Clean up orphaned slots if any
+      try {
+        const slotsSnapshot = await timetableRef.collection("slots").get();
+        const batch = db.batch();
+        slotsSnapshot.docs.forEach(d => batch.delete(d.ref));
+        await batch.commit();
+      } catch {}
+    }
+
+    res.json({ success: true, message: "Timetable deleted successfully" });
+  } catch (err: any) {
+    console.error("Admin delete timetable error:", err);
+    res.status(500).json({ error: err.message || "Failed to delete timetable" });
+  }
+});
+
+app.post("/api/admin/event/delete", async (req, res) => {
+  console.log("POST /api/admin/event/delete");
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Missing authorization token" });
+    }
+    const token = authHeader.split("Bearer ")[1];
+    let userEmail = "";
+    let userId = "";
+
+    try {
+      const decoded = await admin.auth().verifyIdToken(token);
+      userEmail = (decoded.email || "").toLowerCase().trim();
+      userId = decoded.uid;
+    } catch (e: any) {
+      return res.status(401).json({ error: "Invalid authentication token: " + e.message });
+    }
+
+    const { eventId } = req.body;
+    if (!eventId) {
+      return res.status(400).json({ error: "Missing eventId" });
+    }
+
+    const db = admin.firestore();
+    const eventRef = db.collection("events").doc(eventId);
+    const docSnap = await eventRef.get();
+
+    const isOwner = userEmail === APP_OWNER_EMAIL.toLowerCase();
+    const isAdmin = isOwner || ADMIN_EMAILS.includes(userEmail);
+
+    if (docSnap.exists) {
+      const data = docSnap.data() || {};
+      const isCreator = data.creatorId === userId || (data.creatorEmail && data.creatorEmail.toLowerCase() === userEmail);
+
+      if (!isAdmin && !isCreator) {
+        return res.status(403).json({ error: "Permission denied: Only the creator or app owner can delete this event." });
+      }
+
+      await eventRef.delete();
+    }
+
+    // Also record in deleted_events so it doesn't reappear
+    try {
+      await db.collection("deleted_events").doc(eventId).set({
+        deletedAt: admin.firestore.FieldValue.serverTimestamp(),
+        deletedBy: userEmail
+      });
+    } catch {}
+
+    res.json({ success: true, message: "Event deleted successfully" });
+  } catch (err: any) {
+    console.error("Admin delete event error:", err);
+    res.status(500).json({ error: err.message || "Failed to delete event" });
+  }
+});
+
 // Ephemeral Live Location Sharing APIs with memory cache and admin Firestore backing
 const liveSharesCache = new Map<string, any>();
 

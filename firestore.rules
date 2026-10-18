@@ -14,17 +14,21 @@ service cloud.firestore {
 
     // Explicit app owner privilege for progressphilemon@gmail.com
     function isAppOwner() {
-      return isSignedIn() && request.auth.token.email != null && (
-        request.auth.token.email == 'progressphilemon@gmail.com' ||
-        request.auth.token.email.lower() == 'progressphilemon@gmail.com'
+      return isSignedIn() && (
+        ('email' in request.auth.token && request.auth.token.email != null && (
+          request.auth.token.email == 'progressphilemon@gmail.com' ||
+          request.auth.token.email.lower() == 'progressphilemon@gmail.com'
+        ))
       );
     }
 
     function isAdmin() {
       return isSignedIn() && (
         isAppOwner() ||
-        request.auth.token.email == 'admin@rsu.edu.ng' ||
-        (request.auth.token.email != null && request.auth.token.email.lower() == 'admin@rsu.edu.ng') ||
+        ('email' in request.auth.token && request.auth.token.email != null && (
+          request.auth.token.email == 'admin@rsu.edu.ng' ||
+          request.auth.token.email.lower() == 'admin@rsu.edu.ng'
+        )) ||
         exists(/databases/$(database)/documents/admins/$(request.auth.uid))
       );
     }
@@ -122,9 +126,9 @@ service cloud.firestore {
           isAdmin() ||
           isAppOwner() ||
           !exists(/databases/$(database)/documents/timetables/$(timetableId)) ||
-          (get(/databases/$(database)/documents/timetables/$(timetableId)).data.keys().hasAny(['ownerId']) && get(/databases/$(database)/documents/timetables/$(timetableId)).data.ownerId == request.auth.uid) ||
-          (get(/databases/$(database)/documents/timetables/$(timetableId)).data.keys().hasAny(['creatorId']) && get(/databases/$(database)/documents/timetables/$(timetableId)).data.creatorId == request.auth.uid) ||
-          (get(/databases/$(database)/documents/timetables/$(timetableId)).data.keys().hasAny(['creatorEmail']) && request.auth.token.email != null && get(/databases/$(database)/documents/timetables/$(timetableId)).data.creatorEmail == request.auth.token.email)
+          (exists(/databases/$(database)/documents/timetables/$(timetableId)) && get(/databases/$(database)/documents/timetables/$(timetableId)).data.keys().hasAny(['ownerId']) && get(/databases/$(database)/documents/timetables/$(timetableId)).data.ownerId == request.auth.uid) ||
+          (exists(/databases/$(database)/documents/timetables/$(timetableId)) && get(/databases/$(database)/documents/timetables/$(timetableId)).data.keys().hasAny(['creatorId']) && get(/databases/$(database)/documents/timetables/$(timetableId)).data.creatorId == request.auth.uid) ||
+          (exists(/databases/$(database)/documents/timetables/$(timetableId)) && get(/databases/$(database)/documents/timetables/$(timetableId)).data.keys().hasAny(['creatorEmail']) && 'email' in request.auth.token && request.auth.token.email != null && get(/databases/$(database)/documents/timetables/$(timetableId)).data.creatorEmail == request.auth.token.email)
         );
       }
     }
@@ -192,7 +196,7 @@ service cloud.firestore {
           && data.createdAt is string && data.createdAt.size() <= 64;
       }
 
-      allow read: if true;
+      allow get, list, read: if true;
       allow create: if isSignedIn() && isValidId(eventId) && isValidEvent(incoming())
         && (incoming().creatorId == request.auth.uid || isAdmin() || isAppOwner());
       allow update: if isSignedIn() && isValidId(eventId) && isValidEvent(incoming())
@@ -202,13 +206,13 @@ service cloud.firestore {
         isAppOwner() ||
         isAdmin() ||
         (existing().keys().hasAny(['creatorId']) && isOwner(existing().creatorId)) ||
-        (existing().keys().hasAny(['creatorEmail']) && request.auth.token.email != null && existing().creatorEmail.lower() == request.auth.token.email.lower())
+        (existing().keys().hasAny(['creatorEmail']) && 'email' in request.auth.token && request.auth.token.email != null && existing().creatorEmail.lower() == request.auth.token.email.lower())
       );
     }
 
     // 7. Track Deleted Events (for overriding default static items)
     match /deleted_events/{eventId} {
-      allow read: if true;
+      allow get, list, read: if true;
       allow write, create, delete: if isSignedIn();
     }
 

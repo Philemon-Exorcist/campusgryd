@@ -642,17 +642,62 @@ export const TimetablePanel: React.FC<TimetablePanelProps> = ({ onClose, onNavig
       try {
         setIsLoading(true);
 
-        // 1. Delete all slot documents in the subcollection
-        try {
-          const slotsSnapshot = await getDocs(collection(db, 'timetables', t.id, 'slots'));
-          const deleteSlotPromises = slotsSnapshot.docs.map(slotDoc => deleteDoc(slotDoc.ref));
-          await Promise.all(deleteSlotPromises);
-        } catch (slotErr) {
-          console.warn("Could not delete child slot documents:", slotErr);
+        let deletedOnServer = false;
+
+        // If app owner or admin, use the server-side admin delete route for absolute permission authority
+        if (isOwner || isAdmin) {
+          try {
+            const token = await currentUser.getIdToken();
+            const res = await fetch("/api/admin/timetable/delete", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+              },
+              body: JSON.stringify({ timetableId: t.id })
+            });
+            if (res.ok) {
+              deletedOnServer = true;
+            }
+          } catch (adminErr) {
+            console.warn("Direct server admin delete notice, will fall back:", adminErr);
+          }
         }
 
-        // 2. Delete the parent timetable document
-        await deleteDoc(doc(db, 'timetables', t.id));
+        if (!deletedOnServer) {
+          // 1. Delete all slot documents in the subcollection
+          try {
+            const slotsSnapshot = await getDocs(collection(db, 'timetables', t.id, 'slots'));
+            const deleteSlotPromises = slotsSnapshot.docs.map(slotDoc => deleteDoc(slotDoc.ref));
+            await Promise.all(deleteSlotPromises);
+          } catch (slotErr) {
+            console.warn("Could not delete child slot documents:", slotErr);
+          }
+
+          // 2. Delete the parent timetable document with server fallback
+          try {
+            await deleteDoc(doc(db, 'timetables', t.id));
+          } catch (deleteErr: any) {
+            // Attempt server-side admin deletion with fresh ID token
+            try {
+              const token = await currentUser.getIdToken(true);
+              const res = await fetch("/api/admin/timetable/delete", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ timetableId: t.id })
+              });
+              if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || deleteErr.message || "Failed to delete timetable.");
+              }
+            } catch (fallbackErr: any) {
+              throw fallbackErr;
+            }
+          }
+        }
 
         // 3. If this timetable was synced by the user, remove sync record
         if (currentSync && selectedTimetable?.id === t.id) {

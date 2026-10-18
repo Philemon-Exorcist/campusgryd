@@ -337,12 +337,33 @@ export function useCampusEvents(currentUser: User | null) {
       throw new Error(`Permission restricted: Only the creator of this event or the app owner (${APP_OWNER_EMAIL}) can delete it.`);
     }
 
-    // 1. Delete directly from Firestore events collection
+    // 1. Delete directly from Firestore events collection with server admin fallback
     try {
       await deleteDoc(doc(db, 'events', eventId));
-    } catch (err) {
-      handleFirestoreError(err, OperationType.DELETE, `events/${eventId}`);
-      throw err;
+    } catch (err: any) {
+      if (isAppOwner(currentUser) || isUserAdmin(currentUser)) {
+        try {
+          const token = await currentUser.getIdToken(true);
+          const res = await fetch("/api/admin/event/delete", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ eventId })
+          });
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.error || err.message || "Failed to delete event.");
+          }
+        } catch (serverErr) {
+          handleFirestoreError(err, OperationType.DELETE, `events/${eventId}`);
+          throw serverErr;
+        }
+      } else {
+        handleFirestoreError(err, OperationType.DELETE, `events/${eventId}`);
+        throw err;
+      }
     }
 
     // 2. Also record in deleted_events so it stays synchronized across sessions
